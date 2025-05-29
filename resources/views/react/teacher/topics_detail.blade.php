@@ -117,7 +117,6 @@
 
                                             {{-- <!-- Modal Edit --> --}}
 
-
                                             <div class="modal fade" id="modal-update-{{ $topic->id }}" tabindex="-1"
                                                 role="dialog" aria-labelledby="modalUpdateLabel-{{ $topic->id }}"
                                                 aria-hidden="true">
@@ -131,10 +130,9 @@
                                                             </button>
                                                         </div>
                                                         <form method="POST"
-                                                            action="{{ url('react/teacher/topics/update/' . $topic->id) }}"
+                                                            action="{{ route('react_teacher_update_data_topic', $topic->id) }}"
                                                             enctype="multipart/form-data">
                                                             @csrf
-                                                            @method('PUT')
                                                             <div class="modal-body">
                                                                 <div class="form-group">
                                                                     <label>Judul Materi</label>

@@ -224,9 +224,7 @@ public function update_data(Request $request, $id)
             'description' => 'nullable|string',
             'controller' => 'nullable|string|max:255', // Sesuai nama kolom di DB
             'status' => 'required|string|in:draft,publish',
-            // 'folder_path' => 'required|string|max:255', // Mungkin tidak perlu diupdate di sini
-            // 'picturePath' => 'nullable|image|mimes:jpeg,jpg,png|max:4096', // Jika ingin mengizinkan update gambar
-            // 'file_name' => 'nullable|string|max:255', // Jika ingin mengizinkan update nama file
+            // ... tambahkan validasi untuk field lain jika diperlukan
         ]);
 
         // 2. Temukan detail topik berdasarkan ID
@@ -241,7 +239,6 @@ public function update_data(Request $request, $id)
         // 4. Penanganan perubahan folder_path (jika diperlukan)
         if ($request->filled('folder_path') && $request->input('folder_path') !== $topicDetail->folder_path) {
             // Lakukan logika pemindahan file jika diperlukan
-            // Contoh sederhana (mungkin perlu penyesuaian):
             $oldPath = public_path('react/document/' . $topicDetail->folder_path . '/' . $topicDetail->file_name);
             $newPathDir = public_path('react/document/' . $request->input('folder_path'));
             $newPath = public_path('react/document/' . $request->input('folder_path') . '/' . $topicDetail->file_name);
@@ -259,11 +256,9 @@ public function update_data(Request $request, $id)
         // 5. Penanganan update gambar (jika diperlukan)
         if ($request->hasFile('picturePath')) {
             $directory_upload = "react/profile";
-            // Hapus gambar lama jika ada
             if (!empty($topicDetail->picturePath) && Storage::exists($directory_upload . '/' . $topicDetail->picturePath)) {
                 Storage::delete($directory_upload . '/' . $topicDetail->picturePath);
             }
-            // Simpan gambar baru
             $file = $request->file('picturePath');
             $filename = time() . '_' . $file->getClientOriginalName();
             $file->storeAs($directory_upload, $filename, 'public');
@@ -271,33 +266,23 @@ public function update_data(Request $request, $id)
         }
 
         // 6. Penanganan update file (jika diperlukan)
-        // Anda bisa menambahkan logika serupa untuk mengupdate file_name jika diperlukan
-        // dengan menghapus file lama dan menyimpan file baru.
+        // ... logika update file jika ada ...
 
         // 7. Simpan perubahan ke database
         $topicDetail->save();
 
-        // 8. Berikan respon sukses
-        return response()->json([
-            'message' => 'Detail materi berhasil diperbarui!',
-            'data' => $topicDetail,
-        ], 200);
+        // 8. Berikan respon redirect ke view
+        return Redirect::back()->with('message', 'Detail materi berhasil diperbarui!');
+        // Atau, jika ingin redirect ke route lain:
+        // return Redirect::route('nama_route_view')->with('message', 'Detail materi berhasil diperbarui!');
 
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        return response()->json([
-            'message' => 'Detail materi tidak ditemukan.',
-        ], 404);
+        return Redirect::back()->with('error', 'Detail materi tidak ditemukan.');
     } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json([
-            'message' => 'Validasi data gagal.',
-            'errors' => $e->errors(),
-        ], 422);
+        return Redirect::back()->withErrors($e)->withInput();
     } catch (\Exception $e) {
         Log::error("Error updating ReactTopic_detail with ID {$id}: " . $e->getMessage());
-        return response()->json([
-            'message' => 'Terjadi kesalahan saat memperbarui detail materi.',
-            'error' => $e->getMessage(),
-        ], 500);
+        return Redirect::back()->with('error', 'Terjadi kesalahan saat memperbarui detail materi.');
     }
 }
 
