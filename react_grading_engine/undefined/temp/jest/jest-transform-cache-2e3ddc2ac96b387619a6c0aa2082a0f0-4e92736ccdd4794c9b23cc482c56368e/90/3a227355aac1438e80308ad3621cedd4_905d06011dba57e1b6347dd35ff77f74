@@ -1,0 +1,24 @@
+d106aae7bfdf00cfe3bbce79c8e342ee
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = Profile;
+var _image = _interopRequireDefault(require("next/image"));
+var _jsxRuntime = require("react/jsx-runtime");
+function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+function Profile() {
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_image.default, {
+    src: "https://i.imgur.com/MK3eW3Am.jpg",
+    alt: "Katherine Johnson",
+    width: 100,
+    height: 100,
+    style: {
+      maxWidth: "100%",
+      height: "auto",
+      margin: "13px"
+    }
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJfaW1hZ2UiLCJfaW50ZXJvcFJlcXVpcmVEZWZhdWx0IiwicmVxdWlyZSIsIl9qc3hSdW50aW1lIiwiZSIsIl9fZXNNb2R1bGUiLCJkZWZhdWx0IiwiUHJvZmlsZSIsImpzeCIsInNyYyIsImFsdCIsIndpZHRoIiwiaGVpZ2h0Iiwic3R5bGUiLCJtYXhXaWR0aCIsIm1hcmdpbiJdLCJzb3VyY2VzIjpbIjNhMjI3MzU1LWFhYzEtNDM4ZS04MDMwLThhZDM2MjFjZWRkNC5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyIgICAgaW1wb3J0IEltYWdlIGZyb20gXCJuZXh0L2ltYWdlXCI7XHJcblxyXG4gICAgZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUHJvZmlsZSgpIHtcclxuICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgIDxJbWFnZVxyXG4gICAgICAgICAgICBzcmM9XCJodHRwczovL2kuaW1ndXIuY29tL01LM2VXM0FtLmpwZ1wiXHJcbiAgICAgICAgICAgIGFsdD1cIkthdGhlcmluZSBKb2huc29uXCJcclxuICAgICAgICAgICAgd2lkdGg9ezEwMH1cclxuICAgICAgICAgICAgaGVpZ2h0PXsxMDB9XHJcbiAgICAgICAgICAgIFxyXG4gICAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICBtYXhXaWR0aDogXCIxMDAlXCIsXHJcbiAgICAgICAgICAgIGhlaWdodDogXCJhdXRvXCIsXHJcbiAgICAgICAgICAgIG1hcmdpbjogXCIxM3B4XCJcclxuICAgICAgICAgICAgfX1cclxuICAgICAgICAvPlxyXG4gICAgICAgICk7XHJcbiAgICB9Il0sIm1hcHBpbmdzIjoiOzs7Ozs7QUFBSSxJQUFBQSxNQUFBLEdBQUFDLHNCQUFBLENBQUFDLE9BQUE7QUFBK0IsSUFBQUMsV0FBQSxHQUFBRCxPQUFBO0FBQUEsU0FBQUQsdUJBQUFHLENBQUEsV0FBQUEsQ0FBQSxJQUFBQSxDQUFBLENBQUFDLFVBQUEsR0FBQUQsQ0FBQSxLQUFBRSxPQUFBLEVBQUFGLENBQUE7QUFFaEIsU0FBU0csT0FBT0EsQ0FBQSxFQUFHO0VBQzlCLG9CQUNBLElBQUFKLFdBQUEsQ0FBQUssR0FBQSxFQUFDUixNQUFBLENBQUFNLE9BQUs7SUFDRkcsR0FBRyxFQUFDLGtDQUFrQztJQUN0Q0MsR0FBRyxFQUFDLG1CQUFtQjtJQUN2QkMsS0FBSyxFQUFFLEdBQUk7SUFDWEMsTUFBTSxFQUFFLEdBQUk7SUFFWkMsS0FBSyxFQUFFO01BQ1BDLFFBQVEsRUFBRSxNQUFNO01BQ2hCRixNQUFNLEVBQUUsTUFBTTtNQUNkRyxNQUFNLEVBQUU7SUFDUjtFQUFFLENBQ0wsQ0FBQztBQUVOIiwiaWdub3JlTGlzdCI6W119

@@ -14,7 +14,9 @@ class ReactUserEnroll extends Model
     protected $fillable = [
         'id_users',
         'php_topics_detail_id',
-        'created_at'
+        'created_at',
+        // this new field is used to track if the user has completed the topic
+        'flag', // boolean, default false
     ];
 
     public function user()

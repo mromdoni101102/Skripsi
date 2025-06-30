@@ -32,9 +32,9 @@ Route::get('/make', function () {
     echo Hash::make("123");
 });
 
-Route::get('/welcome', function () {
-    echo view('welcome');
-})->name('welcome');
+// Route::get('/welcome', function () {
+//     return view('welcome');
+// })->name('welcome');
 
 Route::get('/', [DataController::class, 'index'])->middleware('guest');
 

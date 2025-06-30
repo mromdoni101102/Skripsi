@@ -444,64 +444,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if ($role == 'teacher')
-                                    @php
-
-                                        $studentSubmissions = DB::table('react_user_submits')
-                                            ->join('users', 'users.id', '=', 'react_user_submits.user_id')
-                                            ->join(
-                                                'react_topics_detail',
-                                                'react_topics_detail.id',
-                                                '=',
-                                                'react_user_submits.topics_id',
-                                            )
-                                            ->select(
-                                                'react_user_submits.created_at as Time',
-                                                'users.name as UserName',
-                                                'react_topics_detail.description as TopicName',
-                                                'react_user_submits.score as Score',
-                                            )
-                                            ->get();
-                                    @endphp
-                                    @foreach ($studentSubmissions as $submission)
-                                        <tr>
-                                            <td>{{ date('Y-m-d H:i', strtotime($submission->Time)) }}</td>
-                                            <td>{{ $submission->UserName }}</td>
-                                            <td>{{ $submission->TopicName }}</td>
-                                            <td>{{ $submission->Score }}</td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                                @if ($role == 'student')
-                                    @php
-
-                                        $studentSubmissions = DB::table('react_user_submits')
-                                            ->join('users', 'users.id', '=', 'react_user_submits.user_id')
-                                            ->join(
-                                                'react_topics_detail',
-                                                'react_topics_detail.id',
-                                                '=',
-                                                'react_user_submits.topics_id',
-                                            )
-                                            ->select(
-                                                'react_user_submits.created_at as Time',
-                                                'users.name as UserName',
-                                                'react_topics_detail.description as TopicName',
-                                                'react_user_submits.score as Score',
-                                            )
-                                            ->where('users.id', Auth::user()->id)
-                                            ->get();
-                                    @endphp
-                                    @foreach ($studentSubmissions as $submission)
-                                        <tr>
-                                            <td>{{ date('Y-m-d H:i', strtotime($submission->Time)) }}</td>
-                                            <td>{{ $submission->UserName }}</td>
-                                            <td>{{ $submission->TopicName }}</td>
-                                            <td>{{ $submission->Score }}</td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-
+                                @foreach ($studentSubmissions as $submission)
+                                    <tr>
+                                        <td>{{ date('Y-m-d H:i', strtotime($submission->Time)) }}</td>
+                                        <td>{{ $submission->UserName }}</td>
+                                        <td>{{ $submission->TopicName }}</td>
+                                        <td>{{ $submission->Score }}</td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

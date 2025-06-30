@@ -1,0 +1,82 @@
+58aad648ae4d5f494cb2e2e96bc9a6fb
+"use strict";
+
+// ======================================================================
+// BAGIAN 1: PERSIAPAN LINGKUNGAN
+// ======================================================================
+
+// Kita membuat tiruan (mock) dari komponen Profile.
+// Ini penting karena saat menguji Gallery, kita tidak peduli dengan isi Profile,
+// kita hanya ingin tahu apakah Gallery berhasil me-render komponen Profile.
+// data-testid akan kita gunakan untuk menghitung jumlah Profile yang dirender.
+_getJestObj().mock('./profile.js', () => {
+  return function MockedProfile() {
+    return /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+      "data-testid": "profile-component",
+      children: "Profile Component"
+    });
+  };
+});
+
+// ======================================================================
+// BAGIAN 2: MENGAMBIL KODE MAHASISWA (Satu-satunya yang di-import)
+// ======================================================================
+
+// Mengambil file jawaban mahasiswa yang dikirim oleh Controller Laravel.
+var _jsxRuntime = require("react/jsx-runtime");
+function _getJestObj() {
+  const {
+    jest
+  } = require("@jest/globals");
+  _getJestObj = () => jest;
+  return jest;
+}
+/**
+ * @jest-environment jsdom
+ */
+require('@testing-library/jest-dom');
+const React = require('react');
+const {
+  render,
+  screen
+} = require('@testing-library/react');
+if (!process.env.SUBMISSION_PATH) {
+  throw new Error('SUBMISSION_PATH environment variable not set.');
+}
+// Menggunakan logika cerdas untuk menangani berbagai jenis export dari mahasiswa.
+const submission = require(process.env.SUBMISSION_PATH);
+const Gallery = submission.Gallery || submission.default || submission;
+
+// ======================================================================
+// BAGIAN 3: "CHECKLIST" PENILAIAN FUNGSIONAL UNTUK GALLERY
+// ======================================================================
+
+describe('Praktikum: Komponen Gallery', () => {
+  // Render komponen mahasiswa sebelum setiap tes dijalankan
+  beforeEach(() => {
+    render(/*#__PURE__*/(0, _jsxRuntime.jsx)(Gallery, {}));
+  });
+  test('Kriteria 1: Harus me-render sebuah section sebagai pembungkus utama', () => {
+    // getByRole('region') adalah cara yang baik untuk mencari tag <section>
+    const sectionElement = screen.getByRole('region');
+    expect(sectionElement).toBeInTheDocument();
+  });
+  test('Kriteria 2: Harus menampilkan judul "Ilmuwan Luar Biasa"', () => {
+    // Cari heading level 1 (h1) yang berisi teks yang diinginkan.
+    const headingElement = screen.getByRole('heading', {
+      level: 1,
+      name: /ilmuwan luar biasa/i
+    });
+    expect(headingElement).toBeInTheDocument();
+  });
+  test('Kriteria 3: Harus me-render TEPAT 3 komponen Profile di dalamnya', () => {
+    // Kita gunakan data-testid yang sudah kita siapkan di mock untuk menghitungnya.
+    const profileComponents = screen.getAllByTestId('profile-component');
+    expect(profileComponents).toHaveLength(3);
+  });
+  test('Kriteria 4: Komponen Gallery harus diexport dengan benar', () => {
+    // Tes ini memastikan mahasiswa tidak lupa mengekspor komponen mereka.
+    expect(Gallery).toBeDefined();
+  });
+});
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJfZ2V0SmVzdE9iaiIsIm1vY2siLCJNb2NrZWRQcm9maWxlIiwiX2pzeFJ1bnRpbWUiLCJqc3giLCJjaGlsZHJlbiIsInJlcXVpcmUiLCJqZXN0IiwiUmVhY3QiLCJyZW5kZXIiLCJzY3JlZW4iLCJwcm9jZXNzIiwiZW52IiwiU1VCTUlTU0lPTl9QQVRIIiwiRXJyb3IiLCJzdWJtaXNzaW9uIiwiR2FsbGVyeSIsImRlZmF1bHQiLCJkZXNjcmliZSIsImJlZm9yZUVhY2giLCJ0ZXN0Iiwic2VjdGlvbkVsZW1lbnQiLCJnZXRCeVJvbGUiLCJleHBlY3QiLCJ0b0JlSW5UaGVEb2N1bWVudCIsImhlYWRpbmdFbGVtZW50IiwibGV2ZWwiLCJuYW1lIiwicHJvZmlsZUNvbXBvbmVudHMiLCJnZXRBbGxCeVRlc3RJZCIsInRvSGF2ZUxlbmd0aCIsInRvQmVEZWZpbmVkIl0sInNvdXJjZXMiOlsiZ2FsbGVyeS50ZXN0LmpzIl0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogQGplc3QtZW52aXJvbm1lbnQganNkb21cbiAqL1xucmVxdWlyZSgnQHRlc3RpbmctbGlicmFyeS9qZXN0LWRvbScpO1xuY29uc3QgUmVhY3QgPSByZXF1aXJlKCdyZWFjdCcpO1xuY29uc3QgeyByZW5kZXIsIHNjcmVlbiB9ID0gcmVxdWlyZSgnQHRlc3RpbmctbGlicmFyeS9yZWFjdCcpO1xuXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG4vLyBCQUdJQU4gMTogUEVSU0lBUEFOIExJTkdLVU5HQU5cbi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cblxuLy8gS2l0YSBtZW1idWF0IHRpcnVhbiAobW9jaykgZGFyaSBrb21wb25lbiBQcm9maWxlLlxuLy8gSW5pIHBlbnRpbmcga2FyZW5hIHNhYXQgbWVuZ3VqaSBHYWxsZXJ5LCBraXRhIHRpZGFrIHBlZHVsaSBkZW5nYW4gaXNpIFByb2ZpbGUsXG4vLyBraXRhIGhhbnlhIGluZ2luIHRhaHUgYXBha2FoIEdhbGxlcnkgYmVyaGFzaWwgbWUtcmVuZGVyIGtvbXBvbmVuIFByb2ZpbGUuXG4vLyBkYXRhLXRlc3RpZCBha2FuIGtpdGEgZ3VuYWthbiB1bnR1ayBtZW5naGl0dW5nIGp1bWxhaCBQcm9maWxlIHlhbmcgZGlyZW5kZXIuXG5qZXN0Lm1vY2soJy4vcHJvZmlsZS5qcycsICgpID0+IHtcbiAgcmV0dXJuIGZ1bmN0aW9uIE1vY2tlZFByb2ZpbGUoKSB7XG4gICAgcmV0dXJuIDxkaXYgZGF0YS10ZXN0aWQ9XCJwcm9maWxlLWNvbXBvbmVudFwiPlByb2ZpbGUgQ29tcG9uZW50PC9kaXY+O1xuICB9O1xufSk7XG5cblxuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuLy8gQkFHSUFOIDI6IE1FTkdBTUJJTCBLT0RFIE1BSEFTSVNXQSAoU2F0dS1zYXR1bnlhIHlhbmcgZGktaW1wb3J0KVxuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuXG4vLyBNZW5nYW1iaWwgZmlsZSBqYXdhYmFuIG1haGFzaXN3YSB5YW5nIGRpa2lyaW0gb2xlaCBDb250cm9sbGVyIExhcmF2ZWwuXG5pZiAoIXByb2Nlc3MuZW52LlNVQk1JU1NJT05fUEFUSCkge1xuICB0aHJvdyBuZXcgRXJyb3IoJ1NVQk1JU1NJT05fUEFUSCBlbnZpcm9ubWVudCB2YXJpYWJsZSBub3Qgc2V0LicpO1xufVxuLy8gTWVuZ2d1bmFrYW4gbG9naWthIGNlcmRhcyB1bnR1ayBtZW5hbmdhbmkgYmVyYmFnYWkgamVuaXMgZXhwb3J0IGRhcmkgbWFoYXNpc3dhLlxuY29uc3Qgc3VibWlzc2lvbiA9IHJlcXVpcmUocHJvY2Vzcy5lbnYuU1VCTUlTU0lPTl9QQVRIKTtcbmNvbnN0IEdhbGxlcnkgPSBzdWJtaXNzaW9uLkdhbGxlcnkgfHwgc3VibWlzc2lvbi5kZWZhdWx0IHx8IHN1Ym1pc3Npb247XG5cblxuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuLy8gQkFHSUFOIDM6IFwiQ0hFQ0tMSVNUXCIgUEVOSUxBSUFOIEZVTkdTSU9OQUwgVU5UVUsgR0FMTEVSWVxuLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuXG5kZXNjcmliZSgnUHJha3Rpa3VtOiBLb21wb25lbiBHYWxsZXJ5JywgKCkgPT4ge1xuXG4gIC8vIFJlbmRlciBrb21wb25lbiBtYWhhc2lzd2Egc2ViZWx1bSBzZXRpYXAgdGVzIGRpamFsYW5rYW5cbiAgYmVmb3JlRWFjaCgoKSA9PiB7XG4gICAgcmVuZGVyKDxHYWxsZXJ5IC8+KTtcbiAgfSk7XG5cbiAgdGVzdCgnS3JpdGVyaWEgMTogSGFydXMgbWUtcmVuZGVyIHNlYnVhaCBzZWN0aW9uIHNlYmFnYWkgcGVtYnVuZ2t1cyB1dGFtYScsICgpID0+IHtcbiAgICAvLyBnZXRCeVJvbGUoJ3JlZ2lvbicpIGFkYWxhaCBjYXJhIHlhbmcgYmFpayB1bnR1ayBtZW5jYXJpIHRhZyA8c2VjdGlvbj5cbiAgICBjb25zdCBzZWN0aW9uRWxlbWVudCA9IHNjcmVlbi5nZXRCeVJvbGUoJ3JlZ2lvbicpO1xuICAgIGV4cGVjdChzZWN0aW9uRWxlbWVudCkudG9CZUluVGhlRG9jdW1lbnQoKTtcbiAgfSk7XG5cbiAgdGVzdCgnS3JpdGVyaWEgMjogSGFydXMgbWVuYW1waWxrYW4ganVkdWwgXCJJbG11d2FuIEx1YXIgQmlhc2FcIicsICgpID0+IHtcbiAgICAvLyBDYXJpIGhlYWRpbmcgbGV2ZWwgMSAoaDEpIHlhbmcgYmVyaXNpIHRla3MgeWFuZyBkaWluZ2lua2FuLlxuICAgIGNvbnN0IGhlYWRpbmdFbGVtZW50ID0gc2NyZWVuLmdldEJ5Um9sZSgnaGVhZGluZycsIHsgbGV2ZWw6IDEsIG5hbWU6IC9pbG11d2FuIGx1YXIgYmlhc2EvaSB9KTtcbiAgICBleHBlY3QoaGVhZGluZ0VsZW1lbnQpLnRvQmVJblRoZURvY3VtZW50KCk7XG4gIH0pO1xuXG4gIHRlc3QoJ0tyaXRlcmlhIDM6IEhhcnVzIG1lLXJlbmRlciBURVBBVCAzIGtvbXBvbmVuIFByb2ZpbGUgZGkgZGFsYW1ueWEnLCAoKSA9PiB7XG4gICAgLy8gS2l0YSBndW5ha2FuIGRhdGEtdGVzdGlkIHlhbmcgc3VkYWgga2l0YSBzaWFwa2FuIGRpIG1vY2sgdW50dWsgbWVuZ2hpdHVuZ255YS5cbiAgICBjb25zdCBwcm9maWxlQ29tcG9uZW50cyA9IHNjcmVlbi5nZXRBbGxCeVRlc3RJZCgncHJvZmlsZS1jb21wb25lbnQnKTtcbiAgICBleHBlY3QocHJvZmlsZUNvbXBvbmVudHMpLnRvSGF2ZUxlbmd0aCgzKTtcbiAgfSk7XG5cbiAgdGVzdCgnS3JpdGVyaWEgNDogS29tcG9uZW4gR2FsbGVyeSBoYXJ1cyBkaWV4cG9ydCBkZW5nYW4gYmVuYXInLCAoKSA9PiB7XG4gICAgLy8gVGVzIGluaSBtZW1hc3Rpa2FuIG1haGFzaXN3YSB0aWRhayBsdXBhIG1lbmdla3Nwb3Iga29tcG9uZW4gbWVyZWthLlxuICAgIGV4cGVjdChHYWxsZXJ5KS50b0JlRGVmaW5lZCgpO1xuICB9KTtcblxufSk7XG4iXSwibWFwcGluZ3MiOiI7O0FBT0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0FBLFdBQUEsR0FBS0MsSUFBSSxDQUFDLGNBQWMsRUFBRSxNQUFNO0VBQzlCLE9BQU8sU0FBU0MsYUFBYUEsQ0FBQSxFQUFHO0lBQzlCLG9CQUFPLElBQUFDLFdBQUEsQ0FBQUMsR0FBQTtNQUFLLGVBQVksbUJBQW1CO01BQUFDLFFBQUEsRUFBQztJQUFpQixDQUFLLENBQUM7RUFDckUsQ0FBQztBQUNILENBQUMsQ0FBQzs7QUFHRjtBQUNBO0FBQ0E7O0FBRUE7QUFBQSxJQUFBRixXQUFBLEdBQUFHLE9BQUE7QUFBQSxTQUFBTixZQUFBO0VBQUE7SUFBQU87RUFBQSxJQUFBRCxPQUFBO0VBQUFOLFdBQUEsR0FBQUEsQ0FBQSxLQUFBTyxJQUFBO0VBQUEsT0FBQUEsSUFBQTtBQUFBO0FBMUJBO0FBQ0E7QUFDQTtBQUNBRCxPQUFPLENBQUMsMkJBQTJCLENBQUM7QUFDcEMsTUFBTUUsS0FBSyxHQUFHRixPQUFPLENBQUMsT0FBTyxDQUFDO0FBQzlCLE1BQU07RUFBRUcsTUFBTTtFQUFFQztBQUFPLENBQUMsR0FBR0osT0FBTyxDQUFDLHdCQUF3QixDQUFDO0FBc0I1RCxJQUFJLENBQUNLLE9BQU8sQ0FBQ0MsR0FBRyxDQUFDQyxlQUFlLEVBQUU7RUFDaEMsTUFBTSxJQUFJQyxLQUFLLENBQUMsK0NBQStDLENBQUM7QUFDbEU7QUFDQTtBQUNBLE1BQU1DLFVBQVUsR0FBR1QsT0FBTyxDQUFDSyxPQUFPLENBQUNDLEdBQUcsQ0FBQ0MsZUFBZSxDQUFDO0FBQ3ZELE1BQU1HLE9BQU8sR0FBR0QsVUFBVSxDQUFDQyxPQUFPLElBQUlELFVBQVUsQ0FBQ0UsT0FBTyxJQUFJRixVQUFVOztBQUd0RTtBQUNBO0FBQ0E7O0FBRUFHLFFBQVEsQ0FBQyw2QkFBNkIsRUFBRSxNQUFNO0VBRTVDO0VBQ0FDLFVBQVUsQ0FBQyxNQUFNO0lBQ2ZWLE1BQU0sY0FBQyxJQUFBTixXQUFBLENBQUFDLEdBQUEsRUFBQ1ksT0FBTyxJQUFFLENBQUMsQ0FBQztFQUNyQixDQUFDLENBQUM7RUFFRkksSUFBSSxDQUFDLHFFQUFxRSxFQUFFLE1BQU07SUFDaEY7SUFDQSxNQUFNQyxjQUFjLEdBQUdYLE1BQU0sQ0FBQ1ksU0FBUyxDQUFDLFFBQVEsQ0FBQztJQUNqREMsTUFBTSxDQUFDRixjQUFjLENBQUMsQ0FBQ0csaUJBQWlCLENBQUMsQ0FBQztFQUM1QyxDQUFDLENBQUM7RUFFRkosSUFBSSxDQUFDLDBEQUEwRCxFQUFFLE1BQU07SUFDckU7SUFDQSxNQUFNSyxjQUFjLEdBQUdmLE1BQU0sQ0FBQ1ksU0FBUyxDQUFDLFNBQVMsRUFBRTtNQUFFSSxLQUFLLEVBQUUsQ0FBQztNQUFFQyxJQUFJLEVBQUU7SUFBc0IsQ0FBQyxDQUFDO0lBQzdGSixNQUFNLENBQUNFLGNBQWMsQ0FBQyxDQUFDRCxpQkFBaUIsQ0FBQyxDQUFDO0VBQzVDLENBQUMsQ0FBQztFQUVGSixJQUFJLENBQUMsa0VBQWtFLEVBQUUsTUFBTTtJQUM3RTtJQUNBLE1BQU1RLGlCQUFpQixHQUFHbEIsTUFBTSxDQUFDbUIsY0FBYyxDQUFDLG1CQUFtQixDQUFDO0lBQ3BFTixNQUFNLENBQUNLLGlCQUFpQixDQUFDLENBQUNFLFlBQVksQ0FBQyxDQUFDLENBQUM7RUFDM0MsQ0FBQyxDQUFDO0VBRUZWLElBQUksQ0FBQywwREFBMEQsRUFBRSxNQUFNO0lBQ3JFO0lBQ0FHLE1BQU0sQ0FBQ1AsT0FBTyxDQUFDLENBQUNlLFdBQVcsQ0FBQyxDQUFDO0VBQy9CLENBQUMsQ0FBQztBQUVKLENBQUMsQ0FBQyIsImlnbm9yZUxpc3QiOltdfQ==

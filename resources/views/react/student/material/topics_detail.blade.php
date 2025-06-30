@@ -7,13 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <title>iCLOP</title>
     <link rel="icon" href="./images/logo.png" type="image/png">
+    {{-- Semua style Anda saya biarkan utuh --}}
     <style>
         .text {
             font-family: 'Poppins', sans-serif;
@@ -36,7 +39,6 @@
             width: 100%;
         }
 
-        /* CSS untuk mengatur sidebar */
         .sidebar {
             width: 250px;
             background-color: #ffffff;
@@ -48,14 +50,12 @@
             padding-top: 20px;
         }
 
-        /* Gaya dropdown */
         .dropdown {
             padding: 6px 8px;
             display: inline-block;
             cursor: pointer;
         }
 
-        /* Gaya dropdown content */
         .dropdown-content {
             display: none;
             position: absolute;
@@ -78,7 +78,6 @@
         .list-item {
             display: flex;
             align-items: center;
-            /* justify-content: space-between; */
             padding: 10px;
             border: 1px solid #E4E4E7;
             cursor: pointer;
@@ -140,12 +139,9 @@
 
         .text:hover {
             color: black;
-            /* Change text color to blue on hover */
             text-decoration: underline;
-            /* Add underline on hover */
         }
-    </style>
-    <style>
+
         #outputDiv {
             background-color: #f4f4f4;
             border: 1px solid #ddd;
@@ -161,38 +157,23 @@
         #outputDiv h3 {
             color: #0056b3;
         }
-    </style>
-    <style>
+
         @media only screen and (max-width: 600px) {
             #sidebar {
                 display: none;
-                /* Hide sidebar on small screens */
             }
 
             div[style*="max-width: 800px"] {
                 max-width: 90%;
-                /* Adjust max-width of container */
             }
         }
     </style>
-    <!-- <style>
-        #progressbar {
-            width: @php
-                     echo $progress.'%';
-                   @endphp;
-            height: 20px;
-            background-color: #4caf50;
-            border-radius: 10px;
-        }
-
-
-    </style> -->
 </head>
-<!-- This is body test -->
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-light bg-light" style="padding: 15px 20px; border-bottom: 1px solid #E4E4E7; font-family: 'Poppins', sans-serif;">
+    <nav class="navbar navbar-light bg-light"
+        style="padding: 15px 20px; border-bottom: 1px solid #E4E4E7; font-family: 'Poppins', sans-serif;">
         <a class="navbar-brand" href="{{ route('react_welcome') }}">
             <img src="{{ asset('images/left-arrow.png') }}" style="height: 24px; margin-right: 10px;">
             {{ $row->title }}
@@ -200,219 +181,236 @@
     </nav>
 
     <!-- Sidebar -->
+    <div id="sidebar" class="sidebar"
+        style="border-left: 1px solid #E4E4E7; padding: 20px; width: 100%; max-width: 400px;">
+        <p class="text-list" style="font-size: 18px; font-weight: 600; font-size: 20px"><img
+                src="{{ asset('images/right.png') }}"
+                style="height: 24px; margin-right: 10px; border:1px solid; border-radius:50%"> Task List</p>
 
+        @if ($role == 'student')
+            <div class="progress-container">
+                <div id="progressbar"></div>
+            </div>
+            <div id="progress">
+                @php echo $progress.'%'; @endphp
+            </div>
+        @endif {{-- PERBAIKAN 1: Menambahkan @endif untuk role student --}}
 
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar" style="border-left: 1px solid #E4E4E7; padding: 20px; width: 100%; max-width: 400px;">
-        <p class="text-list" style="font-size: 18px; font-weight: 600; font-size: 20px"><img src="{{ asset('images/right.png') }}" style="height: 24px; margin-right: 10px; border:1px solid; border-radius:50%"> Task List</p>
-
-        @if($role == 'student')
-        <div class="progress-container">
-            <div id="progressbar"></div>
-        </div>
-        <div id="progress"> @php
-            echo $progress.'%';
-            @endphp</div>
-
-        @endif
         <ul class="list" style="margin-top: 20px">
-            @foreach($topics as $topic)
-            @php
-            /*$results = DB::select("select * from php_topics where id = ?", [$topic->id]);
-            if (!empty($results)) {
-            $result = $results[0];
-            $result->id;
-            } else {
-            echo "No results found.";
-            }*/
-            if($topic->id == $_GET['phpid'] ){
-            $display = "display:block !important";
-            $transform = "transform: rotate(180deg); !important";
-            }else{
-            $display = "";
-            $transform = "";
-            }
-            @endphp
-
-            @php
-
-
-            $row = DB::table('react_topics')
-            ->leftJoin('react_topics_detail', 'react_topics.id', '=', 'react_topics_detail.react_topic_id')
-            ->select('*')
-            ->where('react_topics_detail.react_topic_id', '=', $topic->id )
-            ->get();
-            $no = 1;
-            @endphp
-            @foreach($row as $r)
-            @php
-            $no++;
-            $count_ = ($no/$detailCount)*10;
-            $phpdid = isset($_GET['start']) ? $_GET['start'] : '';
-            if($r->id == $phpdid and $r->react_topic_id == $_GET['phpid']){
-            $active = 'color:#000; font-weight:bold; text-decoration: underline;';
-
-            }else{
-            $active = '';
-            }
-            @endphp
-            <li class="list-item">
-                <img class="list-item-icon" src="{{ asset('images/book.png') }}" style="height: 24px; margin: 20px; @php echo $transform; @endphp">
-                <a class="text" style="{{ $active }};" href="{{ route('react_material_detail') }}?phpid={{$r->id}}&start={{$topic->id}}" id="requirement" onclick="updateProgress(@php echo $count_ @endphp)">{{ $r->description }} </a>
-            </li>
-            @endforeach
-
-
-            <div style="@php echo $display; @endphp">
-
-                <div style="display: flex; flex-direction: column; align-items: left;">
-
-                    @php
-                    $top = $topic->id;
-                    $task = DB::table('php_task')->where('id_topics', $top)->first(); // Menggunakan first() untuk mengambil satu baris pertama
-
-
-                    @endphp
-
-                    @if($task)
-                    @php
-                    $tsk = $task->id;
-                    $task_get = isset($_GET['task']) ? $_GET['task'] : '';
-                    if($tsk == $task_get){
-                    $active_task = 'color:#000; font-weight:bold; text-decoration: underline;';
-
-                    }else{
-                    $active_task = '';
+            @foreach ($topics as $topic)
+                @php
+                    if ($topic->id == $_GET['phpid']) {
+                        $display = 'display:block !important';
+                        $transform = 'transform: rotate(180deg); !important';
+                    } else {
+                        $display = '';
+                        $transform = '';
                     }
 
+                    $row = DB::table('react_topics')
+                        ->leftJoin('react_topics_detail', 'react_topics.id', '=', 'react_topics_detail.react_topic_id')
+                        ->select('*')
+                        ->where('react_topics_detail.react_topic_id', '=', $topic->id)
+                        ->get();
+                    $no = 1;
+                @endphp
+                @foreach ($row as $r)
+                    @php
+                        $no++;
+                        $count_ = ($no / $detailCount) * 10;
+                        $phpdid = isset($_GET['start']) ? $_GET['start'] : '';
+                        if ($r->id == $phpdid and $r->react_topic_id == $_GET['phpid']) {
+                            $active = 'color:#000; font-weight:bold; text-decoration: underline;';
+                        } else {
+                            $active = '';
+                        }
                     @endphp
-                    <div class="row">
-                        <div class="col-sm-1">
-                            <label class="radio-label">
-                                <svg width="16" height="16" class="" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15.9993 2.6665C8.63555 2.6665 2.66602 8.63604 2.66602 15.9998C2.66602 23.3636 8.63555 29.3332 15.9993 29.3332C23.3631 29.3332 29.3327 23.3636 29.3327 15.9998C29.3327 8.63604 23.3631 2.6665 15.9993 2.6665ZM5.33268 15.9998C5.33268 10.1088 10.1083 5.33317 15.9993 5.33317C21.8904 5.33317 26.666 10.1088 26.666 15.9998C26.666 21.8909 21.8904 26.6665 15.9993 26.6665C10.1083 26.6665 5.33268 21.8909 5.33268 15.9998Z" fill="#71717A"></path>
-                                </svg>
-                            </label>
-                        </div>
-                        <div class="col" style="padding-bottom: 1rem;">
-
-                            <a class="text" onclick="updateProgress(@php echo $count_ @endphp)" style="{{ $active_task }}" href="{{ route('send_task') }}?phpid={{$topic->id}}&task={{$task->id}}" id="requirement">{{ $task->task_name }} </a>
-                        </div>
+                    <li class="list-item">
+                        <img class="list-item-icon" src="{{ asset('images/book.png') }}"
+                            style="height: 24px; margin: 20px; @php echo $transform; @endphp">
+                        <a class="text" style="{{ $active }};"
+                            href="{{ route('react_material_detail') }}?phpid={{ $r->id }}&start={{ $topic->id }}"
+                            id="requirement" onclick="updateProgress(@php echo $count_ @endphp)">{{ $r->description }}
+                        </a>
+                    </li>
+                @endforeach
+                <div style="@php echo $display; @endphp">
+                    <div style="display: flex; flex-direction: column; align-items: left;">
+                        @php
+                            $top = $topic->id;
+                            $task = DB::table('php_task')->where('id_topics', $top)->first();
+                        @endphp
+                        @if ($task)
+                            @php
+                                $tsk = $task->id;
+                                $task_get = isset($_GET['task']) ? $_GET['task'] : '';
+                                if ($tsk == $task_get) {
+                                    $active_task = 'color:#000; font-weight:bold; text-decoration: underline;';
+                                } else {
+                                    $active_task = '';
+                                }
+                            @endphp
+                            <div class="row">
+                                <div class="col-sm-1">
+                                    <label class="radio-label">
+                                        <svg width="16" height="16" class="" viewBox="0 0 32 32"
+                                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M15.9993 2.6665C8.63555 2.6665 2.66602 8.63604 2.66602 15.9998C2.66602 23.3636 8.63555 29.3332 15.9993 29.3332C23.3631 29.3332 29.3327 23.3636 29.3327 15.9998C29.3327 8.63604 23.3631 2.6665 15.9993 2.6665ZM5.33268 15.9998C5.33268 10.1088 10.1083 5.33317 15.9993 5.33317C21.8904 5.33317 26.666 10.1088 26.666 15.9998C26.666 21.8909 21.8904 26.6665 15.9993 26.6665C10.1083 26.6665 5.33268 21.8909 5.33268 15.9998Z"
+                                                fill="#71717A"></path>
+                                        </svg>
+                                    </label>
+                                </div>
+                                <div class="col" style="padding-bottom: 1rem;">
+                                    <a class="text" onclick="updateProgress(@php echo $count_ @endphp)"
+                                        style="{{ $active_task }}"
+                                        href="{{ route('send_task') }}?phpid={{ $topic->id }}&task={{ $task->id }}"
+                                        id="requirement">{{ $task->task_name }} </a>
+                                </div>
+                            </div>
+                        @endif
                     </div>
-                    @endif
                 </div>
-
-            </div>
             @endforeach
         </ul>
         <br><br>
     </div>
-    <div class="form-group row">
 
-
-    </div>
-    <div style="padding: 20px; max-width: 68%; margin-left:5px;  ">
+    <div style="padding: 20px; max-width: 68%; margin-left:5px;">
         <div style="border: 1px solid #ccc; padding: 20px 10px 10px 30px; border-radius: 5px;margin-bottom:40px">
-            @php
-            if($pdf_reader == 0):
-            echo $html_start;
-            @endphp
 
+            {{-- PERBAIKAN 2: Menggunakan Blade @if standar, bukan PHP --}}
+            @if ($pdf_reader == 0)
+                {!! $html_start !!}
+            @else
+                <iframe src="{{ asset('react/document/' . $html_start) }}" style="width: 100%; height: 510px"></iframe>
+            @endif
 
-            @php
-            else:
-            @endphp
-
-            <iframe src="{{ asset('react/document/'. $html_start ) }}" style="width: 100%; height: 510px"></iframe>
-            </iframe>
-            @php
-            endif;
-            @endphp
-            @php echo explode('.', $html_start)[0] @endphp
         </div>
     </div>
 
-    @if($role == ' ')
-    <div style="padding: 20px; max-width: 68%; margin-left:5px;  ">
-        <div style="border: 1px solid #ccc; padding: 20px 10px 10px 30px; border-radius: 5px;margin-bottom:40px">
-            <!-- <a href="{{ asset('/storage/private/febri syawaldi/febri syawaldi_db_conn.php') }}" download>Download File</a>
-        <a href="{{public_path('storage/private/febri syawaldi/febri syawaldi_db_conn.php')}}" download>Click me</a> -->
-
-
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Download File</th>
-                        <!-- Add more table headers as needed -->
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($listTask as $item)
-                    <tr>
-                        <td>{{ $item->name }}</td>
-                        <td>{{ $item->flag }}</td>
-                        <td><a href="{{ asset( $item->path ) }}" download="" class="btn btn-primary">Download Faile</a>
-                        </td>
-                        <!-- Add more table cells as needed -->
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-        </div>
-    </div>
-    @else
-
-    @endif
-
-    @if($flag == 1)
-
-    <div style="padding: 20px; max-width: 68%; margin-left:5px;  ">
-        <div style="border: 1px solid #ccc; padding: 20px 10px 10px 30px; border-radius: 5px;margin-bottom:40px">
-            <div style="padding-top: 15px; padding-bottom: 15px">
-                <p class='text-list' style='font-size: 24px; font-weight: 600;width: 400px !important;'> File Upload Form</p>
-                <div class="texts" style=" color:red; position: relative;">
-
-                </div>
-                <div class="texts" style=" position: relative;">
-                    <style>
-                        text:hover {
-                            text-decoration: none !important;
-                        }
-                    </style>
-                    <form id="apiForm" method="POST" action="{{ route('upload_file') }}" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="phpid" id="phpid" value="{{ $_GET['phpid'] }}">
-                        <input type="hidden" name="start" id="start" value="{{ $_GET['start'] }}">
-
-                        <div class=" d-flex  align-items-center">
-                            <div class="col-md-8">
-                                <div class="form-group">
-                                    <label class="mb-2" for="fileJs">Upload File</label>
-                                    <input type="file" name="uploadFile" id="fileJs" class="form-control">
-                                    <small>*Files must be in accordance with the material</small> <br>
-                                    <small>*Hello.js, Form.js, Counter.js, FormStyle.js, dan Navbar.js</small> <br>
-                                    <small>*Hello.test.js, Form.test.js, Counter.test.js, FormStyle.test.js, dan Navbar.test.js</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="invisible">Upload</label>
-                                    <input type="button" value="Upload" class="btn btn-success mb-5" id="uploadBtn">
-                                </div>
-                            </div>
-                        </div>
-                        <div id="notificationMessage" class="mt-3"></div>
-                        @include('react.student.material.components.modalNotification')
-                    </form>
-
-                    <!-- <div id="outputDiv"></div> -->
-                </div>
+    @if ($role == ' ')
+        <div style="padding: 20px; max-width: 68%; margin-left:5px;">
+            <div style="border: 1px solid #ccc; padding: 20px 10px 10px 30px; border-radius: 5px;margin-bottom:40px">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Download File</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($listTask as $item)
+                            <tr>
+                                <td>{{ $item->name }}</td>
+                                <td>{{ $item->flag }}</td>
+                                <td><a href="{{ asset($item->path) }}" download="" class="btn btn-primary">Download
+                                        Faile</a></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
+        </div>
+    @else
+    @endif
+
+    @if (isset($flag) && $flag == 0)
+
+        <div class="tasks-container" style="padding: 0px 20px; max-width: 68%; margin-left:5px;">
+
+            {{--
+            Use @forelse to handle the loop and the empty case cleanly.
+            The loop will only run if $tasks is not null and not empty.
+        --}}
+            @forelse ($tasks as $task)
+                {{-- This heading now only shows if there are actual tasks to display --}}
+                @if ($loop->first)
+                    <h3>Tugas Praktik untuk Materi Ini:</h3>
+                @endif
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">{{ $task->task_name }}</h4>
+                        <hr>
+
+                        {{--
+                        The form correctly points to the upload route and has a unique ID.
+                        This is essential for any JavaScript that might target a specific form.
+                    --}}
+                        <form id="form-task-{{ $task->id }}" class="task-form" method="POST"
+                            action="{{ route('upload_file') }}" enctype="multipart/form-data">
+                            @csrf
+                            <input type="hidden" name="task_id" value="{{ $task->id }}">
+
+                            <div class="d-flex align-items-center mt-3">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label class="mb-2" for="file-{{ $task->id }}">Upload File Jawaban
+                                            (.js)
+                                        </label>
+
+                                        {{-- The input 'id' matches the label 'for', which is correct. --}}
+                                        <input type="file" name="uploadFile" id="file-{{ $task->id }}"
+                                            class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 ms-3">
+                                    <button type="submit" class="btn btn-success mt-4">Kumpulkan dan Nilai</button>
+                                </div>
+                            </div>
+
+                            {{-- A unique container for status messages for this specific task --}}
+                            @if (session('score') && session('task_id') == $task->id)
+                                <div class="alert {{ session('is_success') ? 'alert-success' : 'alert-warning' }}">
+                                    <h4>{{ session('message') }}</h4>
+                                    <p class="mb-1">Skor Anda: <strong>{{ session('score') }}</strong></p>
+                                    <hr>
+                                    <h5 class="mt-3">Rincian Penilaian:</h5>
+                                    <ul class="list-group">
+                                        @foreach (session('feedback') as $item)
+                                            <li
+                                                class="list-group-item {{ $item['status'] === 'passed' ? 'list-group-item-success' : 'list-group-item-danger' }}">
+                                                <strong>{{ $item['status'] === 'passed' ? '✓' : '✗' }}</strong>
+                                                {{ $item['title'] }}
+                                            </li>
+                                            @if ($item['status'] === 'failed' && isset($item['errorMessage']))
+                                                <li class="list-group-item list-group-item-light small">
+                                                    <pre class="mb-0">{{ $item['errorMessage'] }}</pre>
+                                                </li>
+                                            @endif
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </form>
+                    </div>
+                </div>
+            @empty
+                {{-- This block runs if $tasks is empty or not set --}}
+                <div style="padding: 0px 20px; max-width: 68%; margin-left:5px; margin-bottom: 50px;">
+                    <div class="alert alert-success">
+                        <h4>Perhatian!</h4>
+                        <p>Anda Sudah Menyelesaikan Semua Tugas untuk Materi ini.</p>
+                    </div>
+                </div>
+            @endforelse
+        </div>
+    @else
+        {{--
+        This is the 'else' for the main "@if ($flag == 1)" check.
+        It shows if the user does not have access to the assignments for this material.
+        Note: You might want to hide this completely if the user shouldn't know that tasks exist.
+    --}}
+        <div style="padding: 0px 20px; max-width: 68%; margin-left:5px; margin-bottom: 50px;">
+            <div class="alert alert-warning">
+                <h4>Perhatian!</h4>
+                <p>Anda tidak memiliki akses untuk mengerjakan tugas pada materi ini.</p>
+                <p>Silakan hubungi instruktur Anda untuk informasi lebih lanjut.</p>
+            </div>
+        </div>
 
     @endif
 
@@ -428,158 +426,163 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
-    function showNotification(message, type) {
-    var notificationDiv = document.getElementById('notificationMessage');
-    notificationDiv.textContent = message;
-    notificationDiv.className = `alert ${type}`;
-    notificationDiv.style.display = 'block';
-    notificationDiv.innerHTML = message.replace(/\n/g, '<br/>');
-    }
+        // Fungsi-fungsi ini untuk progress bar, sidebar, dll.
+        // ======================================================================
 
-    document.getElementById('uploadBtn').addEventListener('click', function(event) {
-        var fileInput = document.getElementById('fileJs');
-        var file = fileInput.files[0];
+        function updateProgress(params) {
 
-        if (file) {
-            var formData = new FormData();
-            formData.append('uploadFile', file);
+            function updateProgress(params) {
 
-            uploadFile(formData);
-        } else {
-            showNotification('Choose File First.', 'alert-danger');
-        }
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-        event.preventDefault();
-    });
-
-    function uploadFile(formData) {
-        fetch('{{ route('upload_file') }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.uploaded) {
-                showNotification('Tunggu Ya Pengecekan Sedang Di Lakukan.', 'alert-info');
-                if (data.comparisonResult === 'Selamat, jawaban kamu benar.') {
-                    showNotification(data.comparisonResult, 'alert-success');
-                } else {
-                    showNotification(data.comparisonResult, 'alert-warning');
-                }
-            } else {
-                showNotification('Penamaan File ' + data.message, 'alert-danger');
-            }
-        })
-        .catch(error => {
-            console.error('Error uploading file:', error);
-            showNotification('Error uploading file.', 'alert-danger');
-        });
-    }
-
-
-
-
-
-        function submitScoreToLaravel(score) {
-            fetch('/react/baru/submit_score', {
-                    method: 'POST',
+                $.ajaxSetup({
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        score: score,
-                        topics_id: @php echo $_GET['phpid'] @endphp
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Success Simmpan:', data);
-                })
-                .catch(error => console.error('Error submitting score:', error));
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                type: "POST",
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ Route('session_progress') }}",
+                        data: {
+                            params: params
+                        },
+                        success: function(response) {
+                            // Jika Anda punya progress bar visual, update di sini
+                            // Contoh: $('#progressbar').css('width', params + '%');
+                        }
+                    });
+            }
+        });
         }
 
-        function toggleSidebar() {
-            document.getElementById("sidebar").classList.toggle("active");
+        const sidebar = document.getElementById("sidebar");
+        if (sidebar) {
+            sidebar.classList.toggle("active");
+        }
         }
 
         function toggleItem(item) {
+            // Fungsi untuk membuka/menutup daftar materi di sidebar
             const content = item.nextElementSibling;
             const icon = item.querySelector('.list-item-icon');
-            content.style.display = content.style.display === 'block' ? 'none' : 'block';
-            icon.style.transform = content.style.display === 'block' ? 'rotate(180deg)' : 'none';
+            if (content) {
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+            }
+            if (icon) {
+                icon.style.transform = content.style.display === 'block' ? 'rotate(180deg)' : 'none';
+            }
         }
 
-        const radioButtons = document.querySelectorAll('input[name="itemSelection"]');
-        const textElements = document.querySelectorAll('.text');
 
-        radioButtons.forEach((button, index) => {
-            button.addEventListener('change', () => {
-                textElements.forEach((textElement, i) => {
-                    if (i === index) {
-                        textElement.style.fontWeight = 'bold';
-                    } else {
-                        textElement.style.fontWeight = 'normal';
-                    }
+        // ======================================================================
+        // BAGIAN 2: KODE BARU UNTUK MENANGANI SEMUA FORM TUGAS
+        // ======================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cari SEMUA form yang memiliki class 'task-form'
+            const allTaskForms = document.querySelectorAll('.task-form');
+
+            allTaskForms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    // Mencegah halaman me-reload
+                    event.preventDefault();
+
+                    // Dapatkan elemen-elemen penting dari form SPESIFIK yang di-submit ini
+                    const taskId = form.querySelector('input[name="task_id"]').value;
+                    const notificationDiv = document.getElementById(`notification-${taskId}`);
+                    const fileInput = form.querySelector('input[name="uploadFile"]');
+
+                    // Tampilkan pesan "loading"
+                    notificationDiv.innerHTML =
+                        `<div class="alert alert-info">Sedang menilai, mohon tunggu...</div>`;
+
+                    // Submit form
+                    form.submit();
+                    // Buat FormData secara manual untuk memastikan task_id terkirim
+                    // const manualFormData = new FormData();
+                    // manualFormData.append('task_id', taskId);
+
+                    // if (fileInput.files.length > 0) {
+                    //     manualFormData.append('uploadFile', fileInput.files[0]);
+                    // } else {
+                    //     notificationDiv.innerHTML =
+                    //         `<div class="alert alert-danger"><h4>Validasi Gagal!</h4><p>Anda harus memilih file untuk di-upload.</p></div>`;
+                    //     return;
+                    // }
+
+                    // Kirim data ke Controller
+                    //     fetch('{{ route('upload_file') }}', {
+                    //             method: 'POST',
+                    //             body: manualFormData,
+                    //             headers: {
+                    //                 'X-CSRF-TOKEN': document.querySelector(
+                    //                     'meta[name="csrf-token"]').getAttribute('content'),
+                    //                 'X-Requested-With': 'XMLHttpRequest',
+                    //             },
+                    //         })
+                    //         .then(response => response.json().then(data => ({
+                    //             status: response.status,
+                    //             body: data
+                    //         })))
+                    //         .then(({
+                    //             status,
+                    //             body
+                    //         }) => {
+                    //             let resultHTML = '';
+                    //             if (status === 200 && body.success) {
+                    //                 const alertClass = body.score === 100 ? 'alert-success' :
+                    //                     'alert-warning';
+                    //                 resultHTML =
+                    //                     `<div class="alert ${alertClass}"><h4>${body.message}</h4><p class="mb-1">Skor Anda: <strong>${body.score}</strong></p><hr><h5 class="mt-3">Rincian Penilaian:</h5><ul class="list-group">`;
+                    //                 body.feedback.forEach(item => {
+                    //                     const statusIcon = item.status === 'passed' ? '✓' :
+                    //                         '✗';
+                    //                     const itemClass = item.status === 'passed' ?
+                    //                         'list-group-item-success' :
+                    //                         'list-group-item-danger';
+                    //                     resultHTML +=
+                    //                         `<li class="list-group-item ${itemClass}"><strong>${statusIcon}</strong> ${item.title}</li>`;
+                    //                     if (item.status === 'failed' && item.errorMessage) {
+                    //                         resultHTML +=
+                    //                             `<li class="list-group-item list-group-item-light small" style="background-color: #f8f9fa;"><pre class="mb-0" style="white-space: pre-wrap; word-break: break-all;"><code>${item.errorMessage}</code></pre></li>`;
+                    //                     }
+                    //                 });
+                    //                 resultHTML += `</ul></div>`;
+                    //             } else {
+                    //                 let errorTitle = body.error || 'Error';
+                    //                 let errorMessage = body.message ||
+                    //                     'Terjadi kesalahan tidak terduga.';
+                    //                 if (status === 422 && body.errors) {
+                    //                     errorTitle = 'Validasi Gagal!';
+                    //                     errorMessage = '<ul class="mb-0">';
+                    //                     for (const key in body.errors) {
+                    //                         body.errors[key].forEach(message => {
+                    //                             errorMessage += `<li>${message}</li>`;
+                    //                         });
+                    //                     }
+                    //                     errorMessage += '</ul>';
+                    //                 }
+                    //                 resultHTML =
+                    //                     `<div class="alert alert-danger"><h4>${errorTitle}</h4><div>${errorMessage}</div>`;
+                    //                 if (body.details) {
+                    //                     resultHTML +=
+                    //                         `<hr><h6 class="mt-3">Detail Teknis (Petunjuk Error):</h6><pre class="mb-0" style="white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto;"><code>${body.details}</code></pre>`;
+                    //                 }
+                    //                 resultHTML += `</div>`;
+                    //                 console.error('Server Response:', body);
+                    //             }
+
+                    //             notificationDiv.innerHTML = resultHTML;
+                    //         })
+                    //         .catch(error => {
+                    //             notificationDiv.innerHTML =
+                    //                 `<div class="alert alert-danger">Tidak bisa terhubung ke server. Periksa koneksi internet Anda.</div>`;
+                    //             console.error('Fetch/Network Error:', error);
+                    //         });
                 });
             });
-        });
-
-        // function move() {
-        //     // fetch
-
-
-        //     var progressBar = document.getElementById("myProgressBar");
-        //     var progressText = document.getElementById("progressText");
-        //     var width = 0;
-        //     var interval = setInterval(frame, progress);
-
-        //     function frame() {
-        //         if (width >= progress) {
-        //             clearInterval(interval);
-        //         } else {
-        //             width++;
-        //             progressBar.style.width = @php
-        //                 echo $progress;
-        //             @endphp +"%";
-        //             progressText.innerHTML = @php
-        //                 echo $progress;
-        //             @endphp +"%";
-        //         }
-        //     }
-        // }
-
-        move();
-
-        function updateProgress(params) {
-            // Get CSRF token from the meta tag
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken
-                }
-            });
-            $.ajax({
-                type: "POST",
-                url: "{{ Route('session_progress') }}",
-                data: {
-                    params: params
-                },
-                success: function(response) {
-                    $('#progressbar').css('width', params + '%');
-
-                }
-            });
-        }
-
-        // $('#progress').text"@php"
-        // $width = session('params');
-        // echo $width."%";
-        // @endphp
+        }); <
+        />
     </script>
 </body>
 

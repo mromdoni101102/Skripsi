@@ -1,0 +1,55 @@
+6752fa6c75bf1cb185774f9d55811ba6
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Tombol_2 = Tombol_2;
+exports.Tombol_3 = Tombol_3;
+exports.default = Tombol_1;
+var _jsxRuntime = require("react/jsx-runtime");
+function Tombol_2({
+  isipesan,
+  namaTombol
+}) {
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+    className: "bg-blue-500 hover:bg-blue-700 text-white p-2 rounded",
+    onClick: () => {
+      alert(isipesan);
+    },
+    children: namaTombol
+  });
+}
+function Tombol_3({
+  isipesan,
+  namaTombol
+}) {
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+    className: "bg-green-400 hover:bg-green-700 text-white p-2 rounded m-2",
+    onClick: e => {
+      e.stopPropagation();
+      alert(isipesan);
+    },
+    children: namaTombol
+  });
+}
+function Tombol_1() {
+  // Menambahkan fungsi untuk menangani klik tombol
+  function handleClick() {
+    alert("Tombol telah ditekan!!!");
+  }
+  function handleMouseOver() {
+    alert("Eits, mau pencet tombol ini ya??");
+  }
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+    className: "bg-blue-500 hover:bg-blue-700 text-white p-2 rounded",
+    onClick: handleClick
+    // onMouseOver={handleMouseOver}
+    ,
+    onMouseLeave: () => {
+      alert("Loh, kok sudah pergi?");
+    },
+    children: "ini tombol"
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJUb21ib2xfMiIsImlzaXBlc2FuIiwibmFtYVRvbWJvbCIsIl9qc3hSdW50aW1lIiwianN4IiwiY2xhc3NOYW1lIiwib25DbGljayIsImFsZXJ0IiwiY2hpbGRyZW4iLCJUb21ib2xfMyIsImUiLCJzdG9wUHJvcGFnYXRpb24iLCJUb21ib2xfMSIsImhhbmRsZUNsaWNrIiwiaGFuZGxlTW91c2VPdmVyIiwib25Nb3VzZUxlYXZlIl0sInNvdXJjZXMiOlsiYnV0dG9uLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBmdW5jdGlvbiBUb21ib2xfMih7aXNpcGVzYW4sIG5hbWFUb21ib2x9KSB7XHJcbiAgcmV0dXJuIChcclxuICAgIDxidXR0b24gY2xhc3NOYW1lPVwiYmctYmx1ZS01MDAgaG92ZXI6YmctYmx1ZS03MDAgdGV4dC13aGl0ZSBwLTIgcm91bmRlZFwiXHJcbiAgICBvbkNsaWNrPXsoKSA9PiB7YWxlcnQoaXNpcGVzYW4pfX0+XHJcbiAgICAgIHtuYW1hVG9tYm9sfVxyXG4gICAgPC9idXR0b24+XHJcbiAgKTtcclxufVxyXG5cclxuZXhwb3J0IGZ1bmN0aW9uIFRvbWJvbF8zKHtpc2lwZXNhbiwgbmFtYVRvbWJvbH0pIHtcclxuICByZXR1cm4gKFxyXG4gICAgPGJ1dHRvbiBcclxuICAgIGNsYXNzTmFtZT1cImJnLWdyZWVuLTQwMCBob3ZlcjpiZy1ncmVlbi03MDAgdGV4dC13aGl0ZSBwLTIgcm91bmRlZCBtLTJcIlxyXG4gICAgb25DbGljaz17KGUpID0+IHtcclxuICAgICAgICBlLnN0b3BQcm9wYWdhdGlvbigpO1xyXG4gICAgICAgIGFsZXJ0KGlzaXBlc2FuKTtcclxuICAgICAgfVxyXG4gICAgfT5cclxuICAgICAge25hbWFUb21ib2x9XHJcbiAgICA8L2J1dHRvbj5cclxuICApO1xyXG59XHJcblxyXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBUb21ib2xfMSgpIHtcclxuICAvLyBNZW5hbWJhaGthbiBmdW5nc2kgdW50dWsgbWVuYW5nYW5pIGtsaWsgdG9tYm9sXHJcbiAgZnVuY3Rpb24gaGFuZGxlQ2xpY2soKSB7XHJcbiAgICBhbGVydChcIlRvbWJvbCB0ZWxhaCBkaXRla2FuISEhXCIpO1xyXG4gIH1cclxuICBmdW5jdGlvbiBoYW5kbGVNb3VzZU92ZXIoKSB7XHJcbiAgICBhbGVydChcIkVpdHMsIG1hdSBwZW5jZXQgdG9tYm9sIGluaSB5YT8/XCIpO1xyXG4gIH1cclxuICByZXR1cm4gKFxyXG4gICAgPGJ1dHRvbiBcclxuICAgIGNsYXNzTmFtZT1cImJnLWJsdWUtNTAwIGhvdmVyOmJnLWJsdWUtNzAwIHRleHQtd2hpdGUgcC0yIHJvdW5kZWRcIlxyXG4gICAgb25DbGljaz17aGFuZGxlQ2xpY2t9XHJcbiAgICAvLyBvbk1vdXNlT3Zlcj17aGFuZGxlTW91c2VPdmVyfVxyXG4gICAgb25Nb3VzZUxlYXZlPXsoKT0+IHtcclxuICAgICAgYWxlcnQoXCJMb2gsIGtvayBzdWRhaCBwZXJnaT9cIilcclxuICAgIH1cclxuICAgIH1cclxuICAgID4gXHJcbiAgICBpbmkgdG9tYm9sXHJcbiAgICA8L2J1dHRvbj5cclxuICApO1xyXG59Il0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7QUFBTyxTQUFTQSxRQUFRQSxDQUFDO0VBQUNDLFFBQVE7RUFBRUM7QUFBVSxDQUFDLEVBQUU7RUFDL0Msb0JBQ0UsSUFBQUMsV0FBQSxDQUFBQyxHQUFBO0lBQVFDLFNBQVMsRUFBQyxzREFBc0Q7SUFDeEVDLE9BQU8sRUFBRUEsQ0FBQSxLQUFNO01BQUNDLEtBQUssQ0FBQ04sUUFBUSxDQUFDO0lBQUEsQ0FBRTtJQUFBTyxRQUFBLEVBQzlCTjtFQUFVLENBQ0wsQ0FBQztBQUViO0FBRU8sU0FBU08sUUFBUUEsQ0FBQztFQUFDUixRQUFRO0VBQUVDO0FBQVUsQ0FBQyxFQUFFO0VBQy9DLG9CQUNFLElBQUFDLFdBQUEsQ0FBQUMsR0FBQTtJQUNBQyxTQUFTLEVBQUMsNERBQTREO0lBQ3RFQyxPQUFPLEVBQUdJLENBQUMsSUFBSztNQUNaQSxDQUFDLENBQUNDLGVBQWUsQ0FBQyxDQUFDO01BQ25CSixLQUFLLENBQUNOLFFBQVEsQ0FBQztJQUNqQixDQUNEO0lBQUFPLFFBQUEsRUFDRU47RUFBVSxDQUNMLENBQUM7QUFFYjtBQUVlLFNBQVNVLFFBQVFBLENBQUEsRUFBRztFQUNqQztFQUNBLFNBQVNDLFdBQVdBLENBQUEsRUFBRztJQUNyQk4sS0FBSyxDQUFDLHlCQUF5QixDQUFDO0VBQ2xDO0VBQ0EsU0FBU08sZUFBZUEsQ0FBQSxFQUFHO0lBQ3pCUCxLQUFLLENBQUMsa0NBQWtDLENBQUM7RUFDM0M7RUFDQSxvQkFDRSxJQUFBSixXQUFBLENBQUFDLEdBQUE7SUFDQUMsU0FBUyxFQUFDLHNEQUFzRDtJQUNoRUMsT0FBTyxFQUFFTztJQUNUO0lBQUE7SUFDQUUsWUFBWSxFQUFFQSxDQUFBLEtBQUs7TUFDakJSLEtBQUssQ0FBQyx1QkFBdUIsQ0FBQztJQUNoQyxDQUNDO0lBQUFDLFFBQUEsRUFDQTtFQUVELENBQVEsQ0FBQztBQUViIiwiaWdub3JlTGlzdCI6W119

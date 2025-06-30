@@ -5,6 +5,8 @@ namespace App\Http\Controllers\React;
 
 use App\Http\Controllers\Controller;
 use App\Models\NodeJS\Project;
+use App\Models\React\ReactSubmitUser;
+use App\Models\React\ReactTask;
 use App\Models\React\ReactTopic;
 use App\Models\React\ReactTopic_detail;
 use App\Models\React\ReactUserEnroll;
@@ -108,6 +110,7 @@ class ReactController extends Controller
                 ->join('react_topics_detail', 'react_student_enroll.php_topics_detail_id', '=', 'react_topics_detail.id')
                 ->select('react_student_enroll.*', 'users.name as user_name', 'react_topics_detail.*')
                 ->where('react_student_enroll.id_users', $idUser)
+                ->where('react_student_enroll.flag', true) // Only get completed topics
                 ->get();
         } else if ($roleTeacher[0]->role == "teacher") {
             $completedTopics = DB::table('react_student_enroll')
@@ -126,6 +129,7 @@ class ReactController extends Controller
             if (!isset($progress[$userId])) {
                 $userCompletedCount = DB::table('react_student_enroll')
                     ->where('id_users', $userId)
+                    ->where('flag', true)
                     ->count();
 
                 $progress[$userId] = [
@@ -135,13 +139,43 @@ class ReactController extends Controller
             }
         }
 
+        // Retrieve student submissions
+        $studentSubmissions = [];
+        if ($roleTeacher[0]->role == "teacher") {
+            $studentSubmissions = ReactSubmitUser::whereHas('reactTask')
+                ->join('users', 'users.id', '=', 'react_submit_user.id_user')
+                ->join('react_task', 'react_task.id', '=', 'react_submit_user.task_id')
+                ->select(
+                    'react_submit_user.created_at as Time',
+                    'users.name as UserName',
+                    'react_task.task_name as TopicName',
+                    'react_submit_user.nilai as Nilai',
+                )
+                ->get();
+        } else {
+            $studentSubmissions = ReactSubmitUser::where('id_user', Auth::id())
+                ->whereHas('reactTask')
+                ->join('users', 'users.id', '=', 'react_submit_user.id_user')
+                ->join('react_task', 'react_task.id', '=', 'react_submit_user.task_id')
+                ->select(
+                    'react_submit_user.created_at as Time',
+                    'users.name as UserName',
+                    'react_task.task_name as TopicName',
+                    'react_submit_user.nilai as Score',
+                )
+                ->get();
+        }
+
+
+
         return view('react.student.material.index', [
             'result_up'     => $actual,
             'topics'        => $topics_detail,
             'topicsCount'   => $topicsDetailCount,
             'completedTopics' => $completedTopics,
             'role'       => $roleTeacher[0] ? $roleTeacher[0]->role : '',
-            'progress' => $progress
+            'progress' => $progress,
+            'studentSubmissions' => $studentSubmissions,
         ]);
     }
 
@@ -178,13 +212,12 @@ class ReactController extends Controller
 
         $topics = ReactTopic::all();
 
-
         $detail = ReactTopic::findorfail($start);
 
         $topicsCount = count($topics);
         $detailCount = ($topicsCount / $topicsCount) * 10;
 
-        $topics_detail = ReactTopic_detail::all();
+        $topic_tasks = ReactTask::where('id_topics', $phpid)->get();
 
         // Check if the record already exists
         $exists = DB::table('react_student_enroll')
@@ -203,13 +236,46 @@ class ReactController extends Controller
                 ]);
             }
         }
-        $completedTopics = ReactUserEnroll::where('id_users',  Auth::user()->id)->distinct('php_topics_detail_id')->count();
 
-        $progress = ($completedTopics / count($topics_detail)) * 100;
+        // Count the number of distinct completed tasks of this topic
+        $completedTasksCount = ReactSubmitUser::where('id_user', Auth::id())
+            ->whereHas('reactTask', function ($query) {
+                $query->where('materi', 'like', 'React%');
+            })
+            ->where('status', 'Benar')
+            ->distinct('task_id') // Assuming task_id is the foreign key
+            ->count('task_id'); // Count distinct task_ids
+
+        // Get all tasks for this topic which has `salah` status (not completed)
+        $uncompletedTasks = ReactTask::where('id_topics', $phpid)
+            ->where(function ($query) {
+                $query->whereHas('react_submit_user', function ($subQuery) {
+                    $subQuery->where('id_user', Auth::id())
+                        ->where('status', '!=', 'Benar')
+                        ->whereIn('id', function ($inner) {
+                            $inner->selectRaw('MAX(id)')
+                                ->from('react_submit_user')
+                                ->whereColumn('task_id', 'react_task.id')
+                                ->where('id_user', Auth::id())
+                                ->groupBy('task_id');
+                        });
+                })
+                    ->orWhereDoesntHave('react_submit_user', function ($cookies) {
+                        $cookies->where('id_user', Auth::id());
+                    });
+            })
+            ->get();
+
+        if (count($topic_tasks) != 0) {
+            $progress = ($completedTasksCount / count($topic_tasks)) * 100;
+        } else {
+            $progress = 0;
+        }
 
 
         return view('react.student.material.topics_detail', [
             'row'        => $detail,
+            'tasks'      => $uncompletedTasks,
             'topics'     => $topics,
             'phpid'      => $phpid,
             'html_start' => $html_start,
@@ -220,7 +286,7 @@ class ReactController extends Controller
             'flag'       => $results[0] ? $results[0]->flag : 0,
             'listTask'   => [],
             'role'       => $roleTeacher[0] ? $roleTeacher[0]->role : '',
-            'progress' => round($progress, 0)
+            'progress' => round($progress, 0),
         ]);
     }
     function html_start()

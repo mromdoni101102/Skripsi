@@ -41,9 +41,9 @@
             Route::delete('teacher/topics/delete/{id}', [ReactDosenController::class, 'delete'])->name('react_delete');
             Route::post('teacher/topics/add', [ReactDosenController::class, 'add'])->name('react_teacher_add');
             Route::put('/teacher/topics/update/{id}', [ReactDosenController::class, 'update'])->name('react_teacher_update');
-            Route::get('/teacher/topics', [ReactDosenController::class, 'topics'])->name('react_teacer_topics');
-            Route::get('/teacher/topics/add/{id}', [ReactDosenController::class, 'add_topics'])->name('react_teacer_topics');
-            Route::post('/teacher/topics/simpan', [ReactDosenController::class, 'simpan'])->name('react_teacer_simpan');
+            Route::get('/teacher/topics', [ReactDosenController::class, 'topics'])->name('react_teacher_topics');
+            Route::get('/teacher/topics/add/{id}', [ReactDosenController::class, 'add_topics'])->name('react_teacher_topics_add');
+            Route::post('/teacher/topics/simpan', [ReactDosenController::class, 'simpan'])->name('react_teacher_simpan');
             Route::post('/teacher/topics/update-data/{id}', [ReactDosenController::class, 'update_data'])->name('react_teacher_update_data_topic');
         });
     });

@@ -1,0 +1,63 @@
+ac6dfa5ebc49e8ce9e5e432ab7f5e856
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = MyGallery;
+var _utils = require("../../utils/utils.js");
+var _jsxRuntime = require("react/jsx-runtime");
+function MyProfile({
+  name,
+  imageId,
+  profession,
+  awards,
+  discoveries
+}) {
+  return /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
+    className: "profile",
+    children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("h2", {
+      children: name
+    }), /*#__PURE__*/(0, _jsxRuntime.jsx)("img", {
+      className: "avatar",
+      src: (0, _utils.getImageUrl)(imageId),
+      alt: name,
+      width: 70,
+      height: 70
+    }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("ul", {
+      children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("li", {
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("b", {
+          children: "Profesi: "
+        }), profession]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("li", {
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("b", {
+          children: ["Penghargaan: ", awards.length, " "]
+        }), "(", awards.join(', '), ")"]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("li", {
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("b", {
+          children: "Telah Menemukan: "
+        }), discoveries]
+      })]
+    })]
+  });
+}
+function MyGallery() {
+  return /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+    children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("h1", {
+      children: "Notable Scientists"
+    }), /*#__PURE__*/(0, _jsxRuntime.jsx)(MyProfile, {
+      name: "Maria Sk\u0142odowska-Curie",
+      imageId: "szV5sdG",
+      profession: "Fisikawan dan kimiawan",
+      awards: ['Penghargaan Nobel Fisika', 'Penghargaan Nobel Kimia', 'Medali Davy', 'Medali Matteucci'],
+      discoveries: "polonium (unsur kimia)"
+    }), /*#__PURE__*/(0, _jsxRuntime.jsx)(MyProfile, {
+      name: "Katsuko Saruhashi",
+      imageId: "YfeOqp2",
+      profession: "Ahli Geokimia",
+      awards: ['Penghargaan Miyake Geokimia', 'Penghargaan Tanaka'],
+      discoveries: "sebuah metode untuk mengukur karbon dioksida pada air laut"
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJfdXRpbHMiLCJyZXF1aXJlIiwiX2pzeFJ1bnRpbWUiLCJNeVByb2ZpbGUiLCJuYW1lIiwiaW1hZ2VJZCIsInByb2Zlc3Npb24iLCJhd2FyZHMiLCJkaXNjb3ZlcmllcyIsImpzeHMiLCJjbGFzc05hbWUiLCJjaGlsZHJlbiIsImpzeCIsInNyYyIsImdldEltYWdlVXJsIiwiYWx0Iiwid2lkdGgiLCJoZWlnaHQiLCJsZW5ndGgiLCJqb2luIiwiTXlHYWxsZXJ5Il0sInNvdXJjZXMiOlsiN2RmOGJhYTctODY3ZC00NTYyLThkMjMtZGIwMmNiODhiYWVjLmpzIl0sInNvdXJjZXNDb250ZW50IjpbIiAgICBpbXBvcnQgeyBnZXRJbWFnZVVybCB9IGZyb20gJy4uLy4uL3V0aWxzL3V0aWxzLmpzJztcclxuXHJcbiAgICBmdW5jdGlvbiBNeVByb2ZpbGUoeyBuYW1lLCBpbWFnZUlkLCBwcm9mZXNzaW9uLCBhd2FyZHMsIGRpc2NvdmVyaWVzIH0pIHtcclxuICAgIHJldHVybiAoXHJcbiAgICAgICAgPHNlY3Rpb24gY2xhc3NOYW1lPVwicHJvZmlsZVwiPlxyXG4gICAgICAgIDxoMj57bmFtZX08L2gyPlxyXG4gICAgICAgIDxpbWdcclxuICAgICAgICAgICAgY2xhc3NOYW1lPVwiYXZhdGFyXCJcclxuICAgICAgICAgICAgc3JjPXtnZXRJbWFnZVVybChpbWFnZUlkKX1cclxuICAgICAgICAgICAgYWx0PXtuYW1lfVxyXG4gICAgICAgICAgICB3aWR0aD17NzB9XHJcbiAgICAgICAgICAgIGhlaWdodD17NzB9XHJcbiAgICAgICAgLz5cclxuICAgICAgICA8dWw+XHJcbiAgICAgICAgICAgIDxsaT5cclxuICAgICAgICAgICAgPGI+UHJvZmVzaTogPC9iPlxyXG4gICAgICAgICAgICB7cHJvZmVzc2lvbn1cclxuICAgICAgICAgICAgPC9saT5cclxuICAgICAgICAgICAgPGxpPlxyXG4gICAgICAgICAgICA8Yj5QZW5naGFyZ2Fhbjoge2F3YXJkcy5sZW5ndGh9IDwvYj5cclxuICAgICAgICAgICAgKHthd2FyZHMuam9pbignLCAnKX0pXHJcbiAgICAgICAgICAgIDwvbGk+XHJcbiAgICAgICAgICAgIDxsaT5cclxuICAgICAgICAgICAgPGI+VGVsYWggTWVuZW11a2FuOiA8L2I+XHJcbiAgICAgICAgICAgIHtkaXNjb3Zlcmllc31cclxuICAgICAgICAgICAgPC9saT5cclxuICAgICAgICA8L3VsPlxyXG4gICAgICAgIDwvc2VjdGlvbj5cclxuICAgICk7XHJcbiAgICB9XHJcblxyXG4gICAgZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gTXlHYWxsZXJ5KCkge1xyXG4gICAgcmV0dXJuIChcclxuICAgICAgICA8ZGl2PlxyXG4gICAgICAgIDxoMT5Ob3RhYmxlIFNjaWVudGlzdHM8L2gxPlxyXG4gICAgICAgIDxNeVByb2ZpbGVcclxuICAgICAgICAgICAgbmFtZT1cIk1hcmlhIFNrxYJvZG93c2thLUN1cmllXCJcclxuICAgICAgICAgICAgaW1hZ2VJZD1cInN6VjVzZEdcIlxyXG4gICAgICAgICAgICBwcm9mZXNzaW9uPVwiRmlzaWthd2FuIGRhbiBraW1pYXdhblwiXHJcbiAgICAgICAgICAgIGF3YXJkcz17WydQZW5naGFyZ2FhbiBOb2JlbCBGaXNpa2EnLCAnUGVuZ2hhcmdhYW4gTm9iZWwgS2ltaWEnLCAnTWVkYWxpIERhdnknLCAnTWVkYWxpIE1hdHRldWNjaSddfVxyXG4gICAgICAgICAgICBkaXNjb3Zlcmllcz1cInBvbG9uaXVtICh1bnN1ciBraW1pYSlcIlxyXG4gICAgICAgIC8+XHJcbiAgICAgICAgPE15UHJvZmlsZVxyXG4gICAgICAgICAgICBuYW1lPVwiS2F0c3VrbyBTYXJ1aGFzaGlcIlxyXG4gICAgICAgICAgICBpbWFnZUlkPVwiWWZlT3FwMlwiXHJcbiAgICAgICAgICAgIHByb2Zlc3Npb249XCJBaGxpIEdlb2tpbWlhXCJcclxuICAgICAgICAgICAgYXdhcmRzPXtbJ1BlbmdoYXJnYWFuIE1peWFrZSBHZW9raW1pYScsICdQZW5naGFyZ2FhbiBUYW5ha2EnXX1cclxuICAgICAgICAgICAgZGlzY292ZXJpZXM9XCJzZWJ1YWggbWV0b2RlIHVudHVrIG1lbmd1a3VyIGthcmJvbiBkaW9rc2lkYSBwYWRhIGFpciBsYXV0XCJcclxuICAgICAgICAvPlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgKTtcclxuICAgIH1cclxuIl0sIm1hcHBpbmdzIjoiOzs7Ozs7QUFBSSxJQUFBQSxNQUFBLEdBQUFDLE9BQUE7QUFBbUQsSUFBQUMsV0FBQSxHQUFBRCxPQUFBO0FBRW5ELFNBQVNFLFNBQVNBLENBQUM7RUFBRUMsSUFBSTtFQUFFQyxPQUFPO0VBQUVDLFVBQVU7RUFBRUMsTUFBTTtFQUFFQztBQUFZLENBQUMsRUFBRTtFQUN2RSxvQkFDSSxJQUFBTixXQUFBLENBQUFPLElBQUE7SUFBU0MsU0FBUyxFQUFDLFNBQVM7SUFBQUMsUUFBQSxnQkFDNUIsSUFBQVQsV0FBQSxDQUFBVSxHQUFBO01BQUFELFFBQUEsRUFBS1A7SUFBSSxDQUFLLENBQUMsZUFDZixJQUFBRixXQUFBLENBQUFVLEdBQUE7TUFDSUYsU0FBUyxFQUFDLFFBQVE7TUFDbEJHLEdBQUcsRUFBRSxJQUFBQyxrQkFBVyxFQUFDVCxPQUFPLENBQUU7TUFDMUJVLEdBQUcsRUFBRVgsSUFBSztNQUNWWSxLQUFLLEVBQUUsRUFBRztNQUNWQyxNQUFNLEVBQUU7SUFBRyxDQUNkLENBQUMsZUFDRixJQUFBZixXQUFBLENBQUFPLElBQUE7TUFBQUUsUUFBQSxnQkFDSSxJQUFBVCxXQUFBLENBQUFPLElBQUE7UUFBQUUsUUFBQSxnQkFDQSxJQUFBVCxXQUFBLENBQUFVLEdBQUE7VUFBQUQsUUFBQSxFQUFHO1FBQVMsQ0FBRyxDQUFDLEVBQ2ZMLFVBQVU7TUFBQSxDQUNQLENBQUMsZUFDTCxJQUFBSixXQUFBLENBQUFPLElBQUE7UUFBQUUsUUFBQSxnQkFDQSxJQUFBVCxXQUFBLENBQUFPLElBQUE7VUFBQUUsUUFBQSxHQUFHLGVBQWEsRUFBQ0osTUFBTSxDQUFDVyxNQUFNLEVBQUMsR0FBQztRQUFBLENBQUcsQ0FBQyxLQUNuQyxFQUFDWCxNQUFNLENBQUNZLElBQUksQ0FBQyxJQUFJLENBQUMsRUFBQyxHQUNwQjtNQUFBLENBQUksQ0FBQyxlQUNMLElBQUFqQixXQUFBLENBQUFPLElBQUE7UUFBQUUsUUFBQSxnQkFDQSxJQUFBVCxXQUFBLENBQUFVLEdBQUE7VUFBQUQsUUFBQSxFQUFHO1FBQWlCLENBQUcsQ0FBQyxFQUN2QkgsV0FBVztNQUFBLENBQ1IsQ0FBQztJQUFBLENBQ0wsQ0FBQztFQUFBLENBQ0ksQ0FBQztBQUVkO0FBRWUsU0FBU1ksU0FBU0EsQ0FBQSxFQUFHO0VBQ3BDLG9CQUNJLElBQUFsQixXQUFBLENBQUFPLElBQUE7SUFBQUUsUUFBQSxnQkFDQSxJQUFBVCxXQUFBLENBQUFVLEdBQUE7TUFBQUQsUUFBQSxFQUFJO0lBQWtCLENBQUksQ0FBQyxlQUMzQixJQUFBVCxXQUFBLENBQUFVLEdBQUEsRUFBQ1QsU0FBUztNQUNOQyxJQUFJLEVBQUMsNkJBQXdCO01BQzdCQyxPQUFPLEVBQUMsU0FBUztNQUNqQkMsVUFBVSxFQUFDLHdCQUF3QjtNQUNuQ0MsTUFBTSxFQUFFLENBQUMsMEJBQTBCLEVBQUUseUJBQXlCLEVBQUUsYUFBYSxFQUFFLGtCQUFrQixDQUFFO01BQ25HQyxXQUFXLEVBQUM7SUFBd0IsQ0FDdkMsQ0FBQyxlQUNGLElBQUFOLFdBQUEsQ0FBQVUsR0FBQSxFQUFDVCxTQUFTO01BQ05DLElBQUksRUFBQyxtQkFBbUI7TUFDeEJDLE9BQU8sRUFBQyxTQUFTO01BQ2pCQyxVQUFVLEVBQUMsZUFBZTtNQUMxQkMsTUFBTSxFQUFFLENBQUMsNkJBQTZCLEVBQUUsb0JBQW9CLENBQUU7TUFDOURDLFdBQVcsRUFBQztJQUE0RCxDQUMzRSxDQUFDO0VBQUEsQ0FDRyxDQUFDO0FBRVYiLCJpZ25vcmVMaXN0IjpbXX0=

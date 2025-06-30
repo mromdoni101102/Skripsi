@@ -1,0 +1,54 @@
+a5cb0573975633490eb701e7f8d97643
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Panel = Panel;
+exports.default = Accordion;
+var _react = require("react");
+var _jsxRuntime = require("react/jsx-runtime");
+function Accordion() {
+  const [activeIndex, setActiveIndex] = (0, _react.useState)(0);
+  return /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
+    children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("h2", {
+      children: "Almaty, Kazakhstan"
+    }), /*#__PURE__*/(0, _jsxRuntime.jsx)(Panel, {
+      title: "About",
+      isActive: activeIndex === 0,
+      onShow: () => setActiveIndex(0),
+      children: "Dengan populasi sekitar 2 juta orang, Almaty adalah kota terbesar di Kazakhstan. Dari tahun 1929 hingga 1997, kota ini menjadi ibu kota Kazakhstan."
+    }), /*#__PURE__*/(0, _jsxRuntime.jsxs)(Panel, {
+      title: "Etymology",
+      isActive: activeIndex === 1,
+      onShow: () => setActiveIndex(1),
+      children: ["Nama \"Almaty\" berasal dari kata ", /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+        lang: "kk-KZ",
+        children: "alma"
+      }), ", dalam bahasa Kazakh yang berarti \"apel\" dan sering diterjemahkan sebagai \"penuh dengan apel\". Sebenarnya, wilayah sekitar Almaty dipercaya sebagai asal usul apel, dan ", /*#__PURE__*/(0, _jsxRuntime.jsx)("i", {
+        lang: "la",
+        children: "Malus sieversii"
+      }), " liar dianggap sebagai kandidat yang mungkin menjadi nenek moyang apel domestik modern."]
+    })]
+  });
+}
+function Panel({
+  title,
+  children,
+  isActive,
+  onShow
+}) {
+  return /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
+    className: "panel border border-gray-700 p-2",
+    children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("h3", {
+      children: title
+    }), isActive ? /*#__PURE__*/(0, _jsxRuntime.jsx)("p", {
+      children: children
+    }) : /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+      className: "bg-blue-400 text-xs text-white p-1 rounded m-2",
+      onClick: onShow,
+      children: "Tampilkan"
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJfcmVhY3QiLCJyZXF1aXJlIiwiX2pzeFJ1bnRpbWUiLCJBY2NvcmRpb24iLCJhY3RpdmVJbmRleCIsInNldEFjdGl2ZUluZGV4IiwidXNlU3RhdGUiLCJqc3hzIiwiRnJhZ21lbnQiLCJjaGlsZHJlbiIsImpzeCIsIlBhbmVsIiwidGl0bGUiLCJpc0FjdGl2ZSIsIm9uU2hvdyIsImxhbmciLCJjbGFzc05hbWUiLCJvbkNsaWNrIl0sInNvdXJjZXMiOlsiYWNjb3JkaW9uLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnO1xyXG5cclxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQWNjb3JkaW9uKCkge1xyXG4gIGNvbnN0IFthY3RpdmVJbmRleCwgc2V0QWN0aXZlSW5kZXhdID0gdXNlU3RhdGUoMCk7XHJcbiAgcmV0dXJuIChcclxuICAgIDw+XHJcbiAgICAgIDxoMj5BbG1hdHksIEthemFraHN0YW48L2gyPlxyXG4gICAgICA8UGFuZWxcclxuICAgICAgICB0aXRsZT1cIkFib3V0XCJcclxuICAgICAgICBpc0FjdGl2ZT17YWN0aXZlSW5kZXggPT09IDB9XHJcbiAgICAgICAgb25TaG93PXsoKSA9PiBzZXRBY3RpdmVJbmRleCgwKX1cclxuICAgICAgPlxyXG4gICAgICAgIERlbmdhbiBwb3B1bGFzaSBzZWtpdGFyIDIganV0YSBvcmFuZywgQWxtYXR5IGFkYWxhaCBrb3RhIHRlcmJlc2FyIGRpIEthemFraHN0YW4uIERhcmkgdGFodW4gMTkyOSBoaW5nZ2EgMTk5Nywga290YSBpbmkgbWVuamFkaSBpYnUga290YSBLYXpha2hzdGFuLlxyXG4gICAgICA8L1BhbmVsPlxyXG4gICAgICA8UGFuZWxcclxuICAgICAgICB0aXRsZT1cIkV0eW1vbG9neVwiXHJcbiAgICAgICAgaXNBY3RpdmU9e2FjdGl2ZUluZGV4ID09PSAxfVxyXG4gICAgICAgIG9uU2hvdz17KCkgPT4gc2V0QWN0aXZlSW5kZXgoMSl9XHJcbiAgICAgID5cclxuICAgICAgICBOYW1hIFwiQWxtYXR5XCIgYmVyYXNhbCBkYXJpIGthdGEgPHNwYW4gbGFuZz1cImtrLUtaXCI+YWxtYTwvc3Bhbj4sIGRhbGFtIGJhaGFzYSBLYXpha2ggeWFuZyBiZXJhcnRpIFwiYXBlbFwiIGRhbiBzZXJpbmcgZGl0ZXJqZW1haGthbiBzZWJhZ2FpIFwicGVudWggZGVuZ2FuIGFwZWxcIi4gU2ViZW5hcm55YSwgd2lsYXlhaCBzZWtpdGFyIEFsbWF0eSBkaXBlcmNheWEgc2ViYWdhaSBhc2FsIHVzdWwgYXBlbCwgZGFuIDxpIGxhbmc9XCJsYVwiPk1hbHVzIHNpZXZlcnNpaTwvaT4gbGlhciBkaWFuZ2dhcCBzZWJhZ2FpIGthbmRpZGF0IHlhbmcgbXVuZ2tpbiBtZW5qYWRpIG5lbmVrIG1veWFuZyBhcGVsIGRvbWVzdGlrIG1vZGVybi5cclxuICAgICAgPC9QYW5lbD5cclxuICAgIDwvPlxyXG4gICk7XHJcbn1cclxuXHJcbmV4cG9ydCBmdW5jdGlvbiBQYW5lbCh7IHRpdGxlLCBjaGlsZHJlbiwgaXNBY3RpdmUsIG9uU2hvdyB9KSB7XHJcbiAgcmV0dXJuIChcclxuICAgIDxzZWN0aW9uIGNsYXNzTmFtZT1cInBhbmVsIGJvcmRlciBib3JkZXItZ3JheS03MDAgcC0yXCI+XHJcbiAgICAgIDxoMz57dGl0bGV9PC9oMz5cclxuICAgICAge2lzQWN0aXZlID8gKFxyXG4gICAgICAgIDxwPntjaGlsZHJlbn08L3A+XHJcbiAgICAgICkgOiAoXHJcbiAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJiZy1ibHVlLTQwMCB0ZXh0LXhzIHRleHQtd2hpdGUgcC0xIHJvdW5kZWQgbS0yXCIgb25DbGljaz17b25TaG93fT5cclxuICAgICAgICAgIFRhbXBpbGthblxyXG4gICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICApfVxyXG4gICAgPC9zZWN0aW9uPlxyXG4gICk7XHJcbn0iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7QUFBQSxJQUFBQSxNQUFBLEdBQUFDLE9BQUE7QUFBaUMsSUFBQUMsV0FBQSxHQUFBRCxPQUFBO0FBRWxCLFNBQVNFLFNBQVNBLENBQUEsRUFBRztFQUNsQyxNQUFNLENBQUNDLFdBQVcsRUFBRUMsY0FBYyxDQUFDLEdBQUcsSUFBQUMsZUFBUSxFQUFDLENBQUMsQ0FBQztFQUNqRCxvQkFDRSxJQUFBSixXQUFBLENBQUFLLElBQUEsRUFBQUwsV0FBQSxDQUFBTSxRQUFBO0lBQUFDLFFBQUEsZ0JBQ0UsSUFBQVAsV0FBQSxDQUFBUSxHQUFBO01BQUFELFFBQUEsRUFBSTtJQUFrQixDQUFJLENBQUMsZUFDM0IsSUFBQVAsV0FBQSxDQUFBUSxHQUFBLEVBQUNDLEtBQUs7TUFDSkMsS0FBSyxFQUFDLE9BQU87TUFDYkMsUUFBUSxFQUFFVCxXQUFXLEtBQUssQ0FBRTtNQUM1QlUsTUFBTSxFQUFFQSxDQUFBLEtBQU1ULGNBQWMsQ0FBQyxDQUFDLENBQUU7TUFBQUksUUFBQSxFQUNqQztJQUVELENBQU8sQ0FBQyxlQUNSLElBQUFQLFdBQUEsQ0FBQUssSUFBQSxFQUFDSSxLQUFLO01BQ0pDLEtBQUssRUFBQyxXQUFXO01BQ2pCQyxRQUFRLEVBQUVULFdBQVcsS0FBSyxDQUFFO01BQzVCVSxNQUFNLEVBQUVBLENBQUEsS0FBTVQsY0FBYyxDQUFDLENBQUMsQ0FBRTtNQUFBSSxRQUFBLEdBQ2pDLG9DQUNpQyxtQkFBQVAsV0FBQSxDQUFBUSxHQUFBO1FBQU1LLElBQUksRUFBQyxPQUFPO1FBQUFOLFFBQUEsRUFBQztNQUFJLENBQU0sQ0FBQyxpTEFBeUssbUJBQUFQLFdBQUEsQ0FBQVEsR0FBQTtRQUFHSyxJQUFJLEVBQUMsSUFBSTtRQUFBTixRQUFBLEVBQUM7TUFBZSxDQUFHLENBQUMsMkZBQ3pRO0lBQUEsQ0FBTyxDQUFDO0VBQUEsQ0FDUixDQUFDO0FBRVA7QUFFTyxTQUFTRSxLQUFLQSxDQUFDO0VBQUVDLEtBQUs7RUFBRUgsUUFBUTtFQUFFSSxRQUFRO0VBQUVDO0FBQU8sQ0FBQyxFQUFFO0VBQzNELG9CQUNFLElBQUFaLFdBQUEsQ0FBQUssSUFBQTtJQUFTUyxTQUFTLEVBQUMsa0NBQWtDO0lBQUFQLFFBQUEsZ0JBQ25ELElBQUFQLFdBQUEsQ0FBQVEsR0FBQTtNQUFBRCxRQUFBLEVBQUtHO0lBQUssQ0FBSyxDQUFDLEVBQ2ZDLFFBQVEsZ0JBQ1AsSUFBQVgsV0FBQSxDQUFBUSxHQUFBO01BQUFELFFBQUEsRUFBSUE7SUFBUSxDQUFJLENBQUMsZ0JBRWpCLElBQUFQLFdBQUEsQ0FBQVEsR0FBQTtNQUFRTSxTQUFTLEVBQUMsZ0RBQWdEO01BQUNDLE9BQU8sRUFBRUgsTUFBTztNQUFBTCxRQUFBLEVBQUM7SUFFcEYsQ0FBUSxDQUNUO0VBQUEsQ0FDTSxDQUFDO0FBRWQiLCJpZ25vcmVMaXN0IjpbXX0=

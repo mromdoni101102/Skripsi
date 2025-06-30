@@ -24,9 +24,9 @@ class AuthController extends Controller
         $credential = request(['email', 'password']);
         if (Auth::attempt($credential)) {
             if (Auth::user()->teacher == "admin") {
-                return redirect('welcome');
+                return redirect()->route('logout');
             } else if (Auth::user()->teacher == "teacher") {
-                return redirect('react/teacher/topics');
+                return redirect()->route('react_teacher_topics');
             } else {
                 // student
                 session(['key' => Auth::user()->name]);
@@ -34,8 +34,7 @@ class AuthController extends Controller
                 return redirect('dashboard-student');
             }
         } else {
-
-            echo "okee err";
+            return redirect('/')->withErrors(['email' => 'Email atau password salah']);
         }
     }
 
@@ -43,15 +42,15 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'name' => 'required',
-            'email' => 'required',
+            'email' => 'required|unique:users,email',
             'password' => 'required|confirmed',
             'role' => 'required',
-
         ]);
         $data['password'] = bcrypt($data['password']);
-        User::create($data);
+        $data['teacher'] = $data['role'];
+        $user = User::create($data);
 
-        return redirect('/');
+        return redirect('/')->with('success', 'Akun berhasil dibuat, silakan Sign In.');
     }
 
     public function logoutt(Request $request): RedirectResponse

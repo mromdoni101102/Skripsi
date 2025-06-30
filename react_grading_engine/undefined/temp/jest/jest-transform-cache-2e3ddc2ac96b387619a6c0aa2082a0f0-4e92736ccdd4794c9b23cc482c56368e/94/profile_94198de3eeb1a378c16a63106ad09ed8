@@ -1,0 +1,22 @@
+f1550bca48022c02bbeb738007513d87
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = Profile;
+var _react = _interopRequireDefault(require("react"));
+var _utils = require("./utils.js");
+var _jsxRuntime = require("react/jsx-runtime");
+function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+// File: react_grading_engine/dependencies/profile.js
+
+// Asumsi Profile butuh ini
+function Profile() {
+  // Ini hanya contoh, sesuaikan dengan komponen Profile Anda yang sebenarnya
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)("img", {
+    src: "https://i.imgur.com/MK3eW3Am.jpg",
+    alt: "Contoh Profile"
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJfcmVhY3QiLCJfaW50ZXJvcFJlcXVpcmVEZWZhdWx0IiwicmVxdWlyZSIsIl91dGlscyIsIl9qc3hSdW50aW1lIiwiZSIsIl9fZXNNb2R1bGUiLCJkZWZhdWx0IiwiUHJvZmlsZSIsImpzeCIsInNyYyIsImFsdCJdLCJzb3VyY2VzIjpbInByb2ZpbGUuanMiXSwic291cmNlc0NvbnRlbnQiOlsiLy8gRmlsZTogcmVhY3RfZ3JhZGluZ19lbmdpbmUvZGVwZW5kZW5jaWVzL3Byb2ZpbGUuanNcbmltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyBnZXRJbWFnZVVybCB9IGZyb20gJy4vdXRpbHMuanMnOyAvLyBBc3Vtc2kgUHJvZmlsZSBidXR1aCBpbmlcblxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUHJvZmlsZSgpIHtcbiAgICAvLyBJbmkgaGFueWEgY29udG9oLCBzZXN1YWlrYW4gZGVuZ2FuIGtvbXBvbmVuIFByb2ZpbGUgQW5kYSB5YW5nIHNlYmVuYXJueWFcbiAgICByZXR1cm4gPGltZyBzcmM9XCJodHRwczovL2kuaW1ndXIuY29tL01LM2VXM0FtLmpwZ1wiIGFsdD1cIkNvbnRvaCBQcm9maWxlXCIgLz47XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7OztBQUNBLElBQUFBLE1BQUEsR0FBQUMsc0JBQUEsQ0FBQUMsT0FBQTtBQUNBLElBQUFDLE1BQUEsR0FBQUQsT0FBQTtBQUF5QyxJQUFBRSxXQUFBLEdBQUFGLE9BQUE7QUFBQSxTQUFBRCx1QkFBQUksQ0FBQSxXQUFBQSxDQUFBLElBQUFBLENBQUEsQ0FBQUMsVUFBQSxHQUFBRCxDQUFBLEtBQUFFLE9BQUEsRUFBQUYsQ0FBQTtBQUZ6Qzs7QUFFMEM7QUFFM0IsU0FBU0csT0FBT0EsQ0FBQSxFQUFHO0VBQzlCO0VBQ0Esb0JBQU8sSUFBQUosV0FBQSxDQUFBSyxHQUFBO0lBQUtDLEdBQUcsRUFBQyxrQ0FBa0M7SUFBQ0MsR0FBRyxFQUFDO0VBQWdCLENBQUUsQ0FBQztBQUM5RSIsImlnbm9yZUxpc3QiOltdfQ==

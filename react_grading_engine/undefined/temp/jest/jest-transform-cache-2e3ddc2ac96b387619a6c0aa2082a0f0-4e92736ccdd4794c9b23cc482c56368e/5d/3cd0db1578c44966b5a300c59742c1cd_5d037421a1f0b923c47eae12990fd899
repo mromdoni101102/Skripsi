@@ -1,0 +1,13 @@
+f7a16594ea5f7b5cef8c508b6877cde7
+"use strict";
+
+// Isi file test.js
+function sapa() {
+  return "Halo Dunia";
+}
+
+// Pastikan ada export agar sesuai dengan tes
+module.exports = {
+  sapa
+};
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJzYXBhIiwibW9kdWxlIiwiZXhwb3J0cyJdLCJzb3VyY2VzIjpbIjNjZDBkYjE1LTc4YzQtNDk2Ni1iNWEzLTAwYzU5NzQyYzFjZC5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBJc2kgZmlsZSB0ZXN0LmpzXHJcbmZ1bmN0aW9uIHNhcGEoKSB7XHJcbiAgcmV0dXJuIFwiSGFsbyBEdW5pYVwiO1xyXG59XHJcblxyXG4vLyBQYXN0aWthbiBhZGEgZXhwb3J0IGFnYXIgc2VzdWFpIGRlbmdhbiB0ZXNcclxubW9kdWxlLmV4cG9ydHMgPSB7IHNhcGEgfTsiXSwibWFwcGluZ3MiOiI7O0FBQUE7QUFDQSxTQUFTQSxJQUFJQSxDQUFBLEVBQUc7RUFDZCxPQUFPLFlBQVk7QUFDckI7O0FBRUE7QUFDQUMsTUFBTSxDQUFDQyxPQUFPLEdBQUc7RUFBRUY7QUFBSyxDQUFDIiwiaWdub3JlTGlzdCI6W119
