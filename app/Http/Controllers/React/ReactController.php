@@ -91,7 +91,17 @@ class ReactController extends Controller
 
         $actual = "";
         $topics = ReactTopic::all();
-        $topics_detail = ReactTopic_detail::where('id', '>', 39)->get();
+        $topics_detail = '';
+        if (isset($_GET['type'])) {
+            $type = $_GET['type'];
+            if ($type == 'basic') {
+                $topics_detail = ReactTopic_detail::where('id', '<=', 39)->get();
+            } else if ($type == 'advanced') {
+                $topics_detail = ReactTopic_detail::where('id', '>', 39)->get();
+            }
+        } else {
+            $actual = $this->html_start();
+        }
         $topicsCount = count($topics);
         $topicsDetailCount = count($topics_detail);
 

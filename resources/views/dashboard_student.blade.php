@@ -270,7 +270,7 @@
                         </div>
                     </div>
                     <div style="margin-top: auto;">
-                        <a href="{{ route('react_welcome') }}" class="btn btn-primary">Start Learning</a>
+                        <a href="{{ route("react_welcome", ["type" => "basic"]) }}" class="btn btn-primary">Start Learning</a>
                     </div>
                 </div>
             </div>
@@ -288,7 +288,7 @@
                         </div>
                     </div>
                     <div style="margin-top: auto;">
-                        <a href="{{ route('react_welcome') }}" class="btn btn-primary">Start Learning</a>
+                        <a href="{{ route("react_welcome", ['type' => 'advanced']) }}" class="btn btn-primary">Start Learning</a>
                     </div>
                 </div>
             </div>
