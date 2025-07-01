@@ -208,6 +208,115 @@
 
             </div>
         </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header p-2">
+                        <ul class="nav nav-pills">
+                            <li class="nav-item"><a class="nav-link active" href="#submissions"
+                                    data-toggle="tab">Student Submissions</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#topic-finished" data-toggle="tab">Topic
+                                    Finished</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#student-rank" data-toggle="tab">Student
+                                    Rank</a></li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+
+                            {{-- 1. Tab untuk Student Submissions --}}
+                            <div class="active tab-pane" id="submissions">
+                                <h4>Student Submissions</h4>
+                                <table class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>User Name</th>
+                                            <th>Submission Topic</th>
+                                            <th>Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($submissions as $submission)
+                                            <tr>
+                                                <td>{{ $submission->submission_time }}</td>
+                                                <td>{{ $submission->user_name }}</td>
+                                                <td>{{ $submission->topic_title }}</td>
+                                                <td>
+                                                    <span
+                                                        class="badge {{ $submission->score == 100 ? 'badge-success' : ($submission->score > 0 ? 'badge-warning' : 'badge-danger') }}">
+                                                        {{ $submission->score }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center">No submissions found.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {{-- 2. Tab untuk Topic Finished --}}
+                            <div class="tab-pane" id="topic-finished">
+                                <h4>Topic Finished Status</h4>
+                                <table class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal Selesai</th>
+                                            <th>Nama User</th>
+                                            <th>Nama Topic</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($topicFinished as $finished)
+                                            <tr>
+                                                <td>{{ $finished->completion_date }}</td>
+                                                <td>{{ $finished->user_name }}</td>
+                                                <td>{{ $finished->topic_title }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="text-center">No finished topics found.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {{-- 3. Tab untuk Student Rank --}}
+                            <div class="tab-pane" id="student-rank">
+                                <h4>Student Rank (Based on Perfect Scores)</h4>
+                                <table class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 10%;">Rank</th>
+                                            <th>Nama User</th>
+                                            <th style="width: 25%;">Jumlah Nilai 100</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($studentRanks as $rank)
+                                            <tr>
+                                                <td>#{{ $loop->iteration }}</td>
+                                                <td>{{ $rank->user_name }}</td>
+                                                <td>{{ $rank->perfect_scores }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="text-center">No ranking data available.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
 
         {{-- modal tambah data baru --}}
 
@@ -242,7 +351,6 @@
                                     <div class="form-group">
                                         <textarea id="myeditorinstance" name="editor" placeholder="Keterangan Materi"></textarea>
 
-                                        <!-- <textarea id="myeditorinstance" name="editor"></textarea> -->
                                     </div>
                                     <div class="form-group" style="margin-bottom: 20px;">
                                         <label>Upload Materi</label>

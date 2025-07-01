@@ -20,7 +20,6 @@ class ReactLogicalController extends Controller
 {
     public function uploadFile(Request $request)
     {
-        // 1. Validasi
         $request->validate([
             'uploadFile' => 'required|file|extensions:js,jsx|max:1024',
             'task_id'    => 'required|integer|exists:react_task,id'
@@ -37,31 +36,25 @@ class ReactLogicalController extends Controller
 
         $testFileName = $task->test_filename;
 
-        // 2. Persiapan semua path
         $gradingEnginePath = base_path('react_grading_engine');
-        $submissionDir = $gradingEnginePath . '/submissions'; // ./react_grading_engine/submissions
-        $dependenciesDir = $gradingEnginePath . '/dependencies'; // ./react_grading_engine/dependencies
+        $submissionDir = $gradingEnginePath . '/submissions';
+        $dependenciesDir = $gradingEnginePath . '/dependencies';
 
-        $uniqueFilename = Str::uuid()->toString(); // Menggunakan UUID untuk nama unik
-        $submissionFilename = $uploadedFile->getClientOriginalName(); // Nama asli file yang diupload
-        $resultsFilename = $uniqueFilename . '.json'; // Nama file hasil tes yang unik
-        $fullSubmissionPath = $submissionDir . '/' . $submissionFilename; // Path lengkap untuk file yang diupload -> ./react_grading_engine/submissions/nama_file.js
-        $fullResultsPath = $submissionDir . '/' . $resultsFilename; // Path lengkap untuk hasil tes -> ./react_grading_engine/submissions/uuid.json
-        $testFile = "tests/{$testFileName}"; // Path relatif ke file tes yang akan dijalankan -> tests/nama_file.js
-
-        // Daftar semua kemungkinan file dependensi
+        $uniqueFilename = Str::uuid()->toString();
+        $submissionFilename = $uploadedFile->getClientOriginalName();
+        $resultsFilename = $uniqueFilename . '.json';
+        $fullSubmissionPath = $submissionDir . '/' . $submissionFilename;
+        $fullResultsPath = $submissionDir . '/' . $resultsFilename;
+        $testFile = "tests/{$testFileName}";
         $dependencies = ['Card.js', 'profile.js', 'utils.js'];
         $copiedDependencies = [];
 
-        // Pindahkan file mahasiswa
         $uploadedFile->move($submissionDir, $submissionFilename);
 
         $processErrorOutput = null;
 
         try {
-            // Salin file dependensi yang relevan ke folder submission
             foreach ($dependencies as $dep) {
-                // HANYA salin jika nama file dependensi TIDAK SAMA dengan file yang diupload
                 if ($dep !== $submissionFilename) {
                     $source = $dependenciesDir . '/' . $dep;
                     $destination = $submissionDir . '/' . $dep;
@@ -72,7 +65,6 @@ class ReactLogicalController extends Controller
                 }
             }
 
-            // Jalankan proses tes melalui wrapper script
             $wrapperScriptPath = $gradingEnginePath . '/run_jest.bat';
             $process = new Process([
                 $wrapperScriptPath,
@@ -89,7 +81,6 @@ class ReactLogicalController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Grading system failed: ' . $e->getMessage());
-            // Bersihkan file jika terjadi error
             if (File::exists($fullSubmissionPath)) File::delete($fullSubmissionPath);
             foreach ($copiedDependencies as $depPath) {
                 if (File::exists($depPath)) File::delete($depPath);
@@ -102,11 +93,10 @@ class ReactLogicalController extends Controller
             ]);
         }
 
-        // Logika untuk membaca hasil dan memberi skor
         $score = 0;
         $isSuccess = false;
         $feedbackDetails = [];
-        $executionTime = 'N/A'; // Tambahkan variabel default untuk durasi
+        $executionTime = 'N/A';
 
         if (File::exists($fullResultsPath)) {
             $jsonOutput = File::get($fullResultsPath);
@@ -143,7 +133,6 @@ class ReactLogicalController extends Controller
             ]];
         }
 
-        // Simpan file pengumpulan ke log
         $submitSubmission = [
             'task_id' => $taskId,
             'username' => Auth::user()->name,
@@ -154,7 +143,6 @@ class ReactLogicalController extends Controller
         ];
         ReactTaskSubmission::create($submitSubmission);
 
-        // Simpan hasil penilaian ke database
         $submitUser = new ReactSubmitUser();
         $submitUser->id_user = Auth::id();
         $submitUser->nama_user = Auth::user()->name;
@@ -164,13 +152,11 @@ class ReactLogicalController extends Controller
         $submitUser->status = $isSuccess ? 'Benar' : 'Salah';
         $submitUser->save();
 
-        // Hapus SEMUA file sementara
         if (File::exists($fullResultsPath)) File::delete($fullResultsPath);
         foreach ($copiedDependencies as $depPath) {
             if (File::exists($depPath)) File::delete($depPath);
         }
 
-        // Count all completed tasks in the topic
         $countUserTasks = ReactSubmitUser::join('react_task', 'react_task.id', '=', 'react_submit_user.task_id')
             ->where('react_task.id_topics', $task->id_topics)
             ->where('react_submit_user.id_user', Auth::id())
@@ -178,10 +164,8 @@ class ReactLogicalController extends Controller
             ->distinct('task_id')
             ->count();
 
-        // Count all tasks in the topic
         $countAllTasks = ReactTask::where('id_topics', $task->id_topics)->count();
 
-        // Update enrollment status
         if ($countUserTasks == $countAllTasks) {
             ReactUserEnroll::withoutTimestamps(function () use ($task, $request) {
                 return ReactUserEnroll::updateOrCreate(
@@ -194,23 +178,19 @@ class ReactLogicalController extends Controller
             });
         }
 
-        // Data yang akan dikirim kembali sebagai respons
         $responseData = [
             'score'   => round($score),
             'feedback'  => $feedbackDetails,
             'is_success' => $isSuccess,
             'message'  => $isSuccess ? 'Selamat! Semua kriteria terpenuhi.' : 'Penilaian selesai, namun ditemukan beberapa kesalahan. Silakan perbaiki kode Anda.',
             'task_id'  => $taskId,
-            'duration'   => $executionTime, // <-- TAMBAHKAN BARIS INI
+            'duration'   => $executionTime,
         ];
 
-        // PERUBAHAN UTAMA: Cek jika ini adalah request AJAX
         if ($request->ajax()) {
-            // Jika ya, kirim respons dalam format JSON
             return response()->json($responseData);
         }
 
-        // Jika tidak (fallback jika JS gagal), gunakan metode redirect lama
         return redirect()->back()->with($responseData);
     }
 
@@ -228,22 +208,17 @@ class ReactLogicalController extends Controller
             return null;
         }
 
-        // Pola 1: Menangani error "elemen tidak ditemukan".
-        // === PERBAIKAN DI SINI ===
-        // Menggunakan (.*?) agar tidak "rakus" dan berhenti pada titik pertama.
+
         if (preg_match('/Unable to find an element with the text: (.*?)\./', $rawError, $matches)) {
             $missingText = trim($matches[1]);
             return "💡 Gagal: Teks '{$missingText}' yang diharapkan tidak dapat ditemukan. Pastikan komponen Anda sudah menampilkan (me-render) teks ini dengan benar.";
         }
-        // ========================
 
-        // Pola 2: Menangani error "elemen ditemukan lebih dari satu".
         if (preg_match('/Found multiple elements with the text: (.*)/', $rawError, $matches)) {
             $duplicateText = trim($matches[1]);
             return "💡 Gagal: Ditemukan lebih dari satu elemen dengan teks '{$duplicateText}'. Pengujian mengharapkan hanya ada satu. Periksa apakah ada duplikasi data atau komponen.";
         }
 
-        // Pola 3: Menangani perbandingan nilai yang gagal (Expected vs Received).
         if (preg_match('/expect\(received\)\.([^)]+)\(([^)]+)\)/', $rawError, $matches)) {
             $expected = 'N/A';
             $received = 'N/A';
@@ -258,7 +233,6 @@ class ReactLogicalController extends Controller
             return "💡 Gagal: Hasil tidak sesuai dengan yang diharapkan.\n- Diharapkan: {$expected}\n- Diterima:   {$received}";
         }
 
-        // Pola 4: Menangani error umum seperti TypeError atau ReferenceError.
         if (preg_match('/(TypeError|ReferenceError): (.*)/', $rawError, $matches)) {
             $errorType = $matches[1];
             $errorMessage = $matches[2];
@@ -272,12 +246,11 @@ class ReactLogicalController extends Controller
             return "💡 Terjadi error pada kode Anda: `{$errorMessage}`.\n{$suggestion}";
         }
 
-        // Fallback: Jika tidak ada pola yang cocok, tampilkan pesan teknis yang sudah dibersihkan.
         $cleanError = preg_replace('/\x1B\[[0-9;]*[mGKF]/', '', $rawError);
         $lines = explode("\n", $cleanError);
         $errorSummary = [];
         foreach ($lines as $line) {
-            if (preg_match('/^\s+at\s/', $line)) break; // Hapus stack trace
+            if (preg_match('/^\s+at\s/', $line)) break;
             $errorSummary[] = $line;
         }
         return "Terjadi kesalahan teknis yang tidak terduga:\n" . trim(implode("\n", $errorSummary));

@@ -27,11 +27,10 @@ class ReactController extends Controller
 
     public function submit_score_baru(Request $request)
     {
-        $userId = Auth::id(); // Get the authenticated user's ID
+        $userId = Auth::id();
         $score = $request->input('score');
         $topicsId = $request->input('topics_id');
 
-        // Insert the new score into user_submissions using the Query Builder
         DB::table('react_user_submits')->insert([
             'user_id' => $userId,
             'score' => $score,
@@ -41,14 +40,12 @@ class ReactController extends Controller
             'updated_at' => now()
         ]);
 
-        // Retrieve or create an entry in user_rank for specific user and topic
         $currentRank = DB::table('react_student_rank')
             ->where('id_user', $userId)
             ->where('topics_id', $topicsId)
             ->first();
 
         if (!$currentRank) {
-            // If no entry exists, create one
             DB::table('react_student_rank')->insert([
                 'id_user' => $userId,
                 'best_score' => $score,
@@ -57,7 +54,6 @@ class ReactController extends Controller
                 'updated_at' => now()
             ]);
         } else if ($score > $currentRank->best_score) {
-            // Update the best_score if the new score is higher
             DB::table('react_student_rank')
                 ->where('id_user', $userId)
                 ->where('topics_id', $topicsId)
@@ -75,7 +71,6 @@ class ReactController extends Controller
                 ->exists();
 
             if (!$exists) {
-                // Record does not exist, so insert a new one
                 $flags = $results[0]->flag ?? 0;
                 if ($flags == 0) {
                     DB::table('react_student_enroll')->insert([
@@ -103,14 +98,13 @@ class ReactController extends Controller
         $idUser         = Auth::user()->id;
         $roleTeacher    = DB::select("select role from users where id = $idUser");
 
-        // Retrieve all completed topics based on role
         if ($roleTeacher[0]->role == "student") {
             $completedTopics = DB::table('react_student_enroll')
                 ->join('users', 'react_student_enroll.id_users', '=', 'users.id')
                 ->join('react_topics_detail', 'react_student_enroll.php_topics_detail_id', '=', 'react_topics_detail.id')
                 ->select('react_student_enroll.*', 'users.name as user_name', 'react_topics_detail.*')
                 ->where('react_student_enroll.id_users', $idUser)
-                ->where('react_student_enroll.flag', true) // Only get completed topics
+                ->where('react_student_enroll.flag', true)
                 ->get();
         } else if ($roleTeacher[0]->role == "teacher") {
             $completedTopics = DB::table('react_student_enroll')
@@ -118,11 +112,9 @@ class ReactController extends Controller
                 ->join('react_topics_detail', 'react_student_enroll.php_topics_detail_id', '=', 'react_topics_detail.id')
                 ->select('react_student_enroll.*', 'users.name as user_name', 'react_topics_detail.*')
                 ->get();
-        } else {; // Return an empty collection if role is neither student nor teacher
+        } else {;
         }
 
-
-        // Calculate progress for each user
         $progress = [];
         foreach ($completedTopics as $enrollment) {
             $userId = $enrollment->id_users;
@@ -139,7 +131,6 @@ class ReactController extends Controller
             }
         }
 
-        // Retrieve student submissions
         $studentSubmissions = [];
         if ($roleTeacher[0]->role == "teacher") {
             $studentSubmissions = ReactSubmitUser::whereHas('reactTask')
@@ -203,30 +194,20 @@ class ReactController extends Controller
                 $html_start = "";
             }
         }
-        //        dd($html_start);
-
-        //        $listTask = DB::select("select aa.*, us.name from react_user_submits aa join users us on aa.userid = us.id where php_id = $phpid and php_id_topic = $start ");
-
         $idUser         = Auth::user()->id;
         $roleTeacher    = DB::select("select role from users where id = $idUser");
-
         $topics = ReactTopic::all();
-
         $detail = ReactTopic::findorfail($start);
-
         $topicsCount = count($topics);
         $detailCount = ($topicsCount / $topicsCount) * 10;
-
         $topic_tasks = ReactTask::where('id_topics', $phpid)->get();
 
-        // Check if the record already exists
         $exists = DB::table('react_student_enroll')
             ->where('id_users', Auth::user()->id)
             ->where('php_topics_detail_id', $phpid)
             ->exists();
 
         if (!$exists) {
-            // Record does not exist, so insert a new one
             $flags = $results[0]->flag ?? 0;
             if ($flags == 0) {
                 DB::table('react_student_enroll')->insert([
@@ -237,17 +218,15 @@ class ReactController extends Controller
             }
         }
 
-        // Count the number of distinct completed tasks of this topic
         $completedTasksCount = ReactSubmitUser::where('id_user', Auth::id())
             ->whereHas('reactTask', function ($query) {
                 $query->where('materi', 'like', 'React%');
             })
             ->where('status', 'Benar')
-            ->distinct('task_id') // Assuming task_id is the foreign key
-            ->count('task_id'); // Count distinct task_ids
+            ->distinct('task_id')
+            ->count('task_id');
 
-        // Get all tasks for this topic which has `salah` status (not completed)
-        $uncompletedTasks = ReactTask::where('id_topics', $phpid)
+            $uncompletedTasks = ReactTask::where('id_topics', $phpid)
             ->where(function ($query) {
                 $query->whereHas('react_submit_user', function ($subQuery) {
                     $subQuery->where('id_user', Auth::id())
@@ -369,7 +348,6 @@ class ReactController extends Controller
 
         ]);
 
-        // menyimpan data file yang diupload ke variabel $file
         $file = $request->file('file');
 
         $file_name = Auth::user()->name . '_' . $file->getClientOriginalName();
@@ -385,8 +363,6 @@ class ReactController extends Controller
         Session::put('path', $path);
 
         $val = session('key');
-        // DB::select("TRUNCATE TABLE php_user_submits");
-        // DB::insert("insert into php_user_submits(userid) values ('$val')");
 
         $phpunitExecutable  = base_path('vendor/bin/phpunit');
 
@@ -421,18 +397,15 @@ class ReactController extends Controller
             $unitTest           = base_path('tests/CheckDeleteHtmlGuru.php');
         }
 
-        // Run PHPUnit tests using exec
         $output = [];
         $returnVar = 0;
 
         exec("$phpunitExecutable $unitTest", $output, $returnVar);
         Storage::deleteDirectory('/private/testingunit');
 
-        // Output the results
         $outputString  = "<br>PHPUnit Output: <br>";
         $outputString .= implode("<br>", $output) . "<br>";
         $outputString .= "Return Code: $returnVar<br>";
-        // dd($output);
 
         $idUser     = Auth::user()->id;
         $pathuser   = 'storage/private/' . $userName . '/' . $file_name . '';
@@ -441,7 +414,6 @@ class ReactController extends Controller
 
         DB::insert("INSERT INTO php_user_submits(userid, path, flag, php_id, php_id_topic) values ('$idUser', '$pathuser', '$flag', $phpid, $start)");
 
-        // php_user_submits
         return redirect('/php/detail-topics?phpid=' . $phpid . '&start=' . $start . '&output=' . $outputString . '');
     }
 
@@ -455,8 +427,6 @@ class ReactController extends Controller
         $path = base_path("vendor\bin\phpunit -c $path_test");
         $output = shell_exec($path);
 
-        // echo dd($output);
-        // echo json_encode($output);
         $string  = htmlentities($output);
         $string = str_replace("\n", ' ', $string);
 
@@ -470,7 +440,6 @@ class ReactController extends Controller
             $numTests        = $matches[5];
             $numAssertions   = $matches[6];
 
-            // Output the extracted information
             echo "PHPUnit version: $phpUnitVersion <br />";
             echo "PHP version: $phpVersion <br />";
             echo "Execution time: $executionTime <br />";
@@ -487,7 +456,6 @@ class ReactController extends Controller
 
             $string = json_encode($output);
             $text = str_replace("\n", ' ', $output);
-            // Define patterns to extract relevant information
             $pattern_phpunit_version = '/PHPUnit\s+(\d+\.\d+\.\d+)/';
             $pattern_php_runtime = '/Runtime:\s+PHP\s+([\d.]+)/';
             $pattern_configuration = '/Configuration:\s+(.+)/';
@@ -495,7 +463,6 @@ class ReactController extends Controller
             $pattern_failure_test_case = '/Failed asserting that \'(.*?)\' contains \'(.*?)\'./';
             $pattern_failure_location = '/(C:\\\\.*?\\.php):(\d+)/';
 
-            // Perform matching
             preg_match($pattern_phpunit_version, $text, $matches_phpunit_version);
             preg_match($pattern_php_runtime, $text, $matches_php_runtime);
             preg_match($pattern_configuration, $text, $matches_configuration);
@@ -503,7 +470,6 @@ class ReactController extends Controller
             preg_match($pattern_failure_test_case, $text, $matches_failure_test_case);
             preg_match($pattern_failure_location, $text, $matches_failure_location);
 
-            // Extracted information
             $phpunit_version = isset($matches_phpunit_version[1]) ? $matches_phpunit_version[1] : "Not found";
             $php_runtime = isset($matches_php_runtime[1]) ? $matches_php_runtime[1] : "Not found";
             $configuration_path = isset($matches_configuration[1]) ? $matches_configuration[1] : "Not found";
@@ -513,7 +479,6 @@ class ReactController extends Controller
             $failure_location = isset($matches_failure_location[1]) ? $matches_failure_location[1] : "Not found";
             $failure_line = isset($matches_failure_location[2]) ? $matches_failure_location[2] : "Not found";
 
-            // Output extracted information
             echo "PHPUnit version: $phpunit_version <br >";
             echo "PHP Runtime: $php_runtime <br >";
             echo "Configuration path: $configuration_path <br >";
@@ -531,25 +496,15 @@ class ReactController extends Controller
         $phpunitExecutable  = base_path('vendor/bin/phpunit');
         $unitTest           = base_path('tests/FileReadTest.php');
 
-        // Run PHPUnit tests using exec
         $output = [];
         $returnVar = 0;
         exec("$phpunitExecutable $unitTest", $output, $returnVar);
-
-
-        // Output the results
-        // echo "PHPUnit Output: <br>";
-        // echo implode("<br>", $output) . "<br>";
-        // echo "Return Code: $returnVar<br>";
 
         return response()->json($output);
     }
 
     function session_progress()
     {
-        // Cek Ada Data Tidak, Enrollement User
-        // Jika Tidak Insert
-
         session(['params' => $_POST['params']]);
     }
 }

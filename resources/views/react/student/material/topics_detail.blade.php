@@ -16,7 +16,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <title>iCLOP</title>
     <link rel="icon" href="./images/logo.png" type="image/png">
-    {{-- Semua style Anda saya biarkan utuh --}}
     <style>
         .text {
             font-family: 'Poppins', sans-serif;
@@ -194,7 +193,7 @@
             <div id="progress">
                 @php echo $progress.'%'; @endphp
             </div>
-        @endif {{-- PERBAIKAN 1: Menambahkan @endif untuk role student --}}
+        @endif
 
         <ul class="list" style="margin-top: 20px">
             @foreach ($topics as $topic)
@@ -279,7 +278,6 @@
     <div style="padding: 20px; max-width: 68%; margin-left:5px;">
         <div style="border: 1px solid #ccc; padding: 20px 10px 10px 30px; border-radius: 5px;margin-bottom:40px">
 
-            {{-- PERBAIKAN 2: Menggunakan Blade @if standar, bukan PHP --}}
             @if ($pdf_reader == 0)
                 {!! $html_start !!}
             @else
@@ -323,12 +321,7 @@
 
         <div class="tasks-container" style="padding: 0px 20px; max-width: 68%; margin-left:5px;">
 
-            {{--
-            Use @forelse to handle the loop and the empty case cleanly.
-            The loop will only run if $tasks is not null and not empty.
-        --}}
             @forelse ($tasks as $task)
-                {{-- This heading now only shows if there are actual tasks to display --}}
                 @if ($loop->first)
                     <h3>Tugas Praktik untuk Materi Ini:</h3>
                 @endif
@@ -337,11 +330,6 @@
                     <div class="card-body">
                         <h4 class="card-title">{{ $task->task_name }}</h4>
                         <hr>
-
-                        {{--
-                        The form correctly points to the upload route and has a unique ID.
-                        This is essential for any JavaScript that might target a specific form.
-                    --}}
                         <form id="form-task-{{ $task->id }}" class="task-form" method="POST"
                             action="{{ route('upload_file') }}" enctype="multipart/form-data">
                             @csrf
@@ -354,7 +342,6 @@
                                             (.js)
                                         </label>
 
-                                        {{-- The input 'id' matches the label 'for', which is correct. --}}
                                         <input type="file" name="uploadFile" id="file-{{ $task->id }}"
                                             class="form-control" required>
                                     </div>
@@ -363,10 +350,8 @@
                                     <button type="submit" class="btn btn-success mt-4">Kumpulkan dan Nilai</button>
                                 </div>
                             </div>
-                            {{-- PASTIKAN DIV INI ADA DI DALAM FORM --}}
                             <div id="notification-{{ $task->id }}" class="mt-4"></div>
 
-                            {{-- A unique container for status messages for this specific task --}}
                             @if (session('score') && session('task_id') == $task->id)
                                 <div class="alert {{ session('is_success') ? 'alert-success' : 'alert-warning' }}">
                                     <h4>{{ session('message') }}</h4>
@@ -393,7 +378,6 @@
                     </div>
                 </div>
             @empty
-                {{-- This block runs if $tasks is empty or not set --}}
                 <div style="padding: 0px 20px; max-width: 68%; margin-left:5px; margin-bottom: 50px;">
                     <div class="alert alert-success">
                         <h4>Perhatian!</h4>
@@ -403,11 +387,6 @@
             @endforelse
         </div>
     @else
-        {{--
-        This is the 'else' for the main "@if ($flag == 1)" check.
-        It shows if the user does not have access to the assignments for this material.
-        Note: You might want to hide this completely if the user shouldn't know that tasks exist.
-    --}}
         <div style="padding: 0px 20px; max-width: 68%; margin-left:5px; margin-bottom: 50px;">
             <div class="alert alert-warning">
                 <h4>Perhatian!</h4>
@@ -429,7 +408,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    {{-- Ganti seluruh blok <script> Anda dengan versi final yang lebih tangguh ini --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const allTaskForms = document.querySelectorAll('.task-form');
@@ -463,7 +441,7 @@
                     const formData = new FormData(form);
 
                     fetch('{{ route('upload_file') }}', {
-                            method: 'POST', // Pastikan ini tetap POST
+                            method: 'POST',
                             body: formData,
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector(
@@ -473,8 +451,6 @@
                         })
                         .then(response => {
                             if (!response.ok) {
-                                // Jika response status bukan 2xx (misal: 404, 405, 500), lempar error
-                                // Ini akan langsung ditangkap oleh .catch()
                                 throw new Error(
                                     `HTTP error! status: ${response.status} ${response.statusText}`
                                 );
@@ -482,27 +458,21 @@
                             return response.json();
                         })
                         .then(data => {
-                            // Blok ini HANYA berjalan jika response sukses (status 2xx)
                             const alertClass = data.is_success ? 'alert-success' :
                                 'alert-warning';
 
-                            // ==== AWAL PERUBAHAN ====
-                            // Bangun HTML dasar untuk hasil
                             let resultHTML =
                                 `<div class="alert ${alertClass}">
-            <h4>${data.message}</h4>
-            <p class="mb-1">Skor Anda: <strong>${data.score}</strong></p>`;
+                                <h4>${data.message}</h4>
+                                <p class="mb-1">Skor Anda: <strong>${data.score}</strong></p>`;
 
-                            // Tambahkan baris durasi jika data.duration ada
                             if (data.duration) {
                                 resultHTML +=
                                     `<p class="mb-1">Waktu Eksekusi: <strong>${data.duration}</strong></p>`;
                             }
 
-                            // Lanjutkan dengan sisa HTML
                             resultHTML +=
                                 `<hr><h5 class="mt-3">Rincian Penilaian:</h5><ul class="list-group">`;
-                            // ==== AKHIR PERUBAHAN ====
 
                             data.feedback.forEach(item => {
                                 const statusIcon = item.status === 'passed' ? '✓' : '✗';
@@ -522,9 +492,7 @@
                                 notificationDiv.innerHTML = resultHTML;
                             }
 
-                            if (data.score === 100) {
-                                // ... (logika notifikasi global)
-                            } else {
+                            if (data.score === 100) {} else {
                                 if (pageLevelAlertContainer) {
                                     pageLevelAlertContainer.innerHTML = '';
                                 }
@@ -533,11 +501,8 @@
                             }
                         })
                         .catch(error => {
-                            // PERBAIKAN UTAMA DI SINI
-                            // Blok ini sekarang menangani SEMUA jenis error (jaringan, HTTP, dll)
                             console.error('Fetch Error:', error);
                             if (notificationDiv) {
-                                // Buat pesan error sendiri, JANGAN gunakan variabel dari .then()
                                 const errorMessageHTML = `
                                 <div class="alert alert-danger">
                                     <h4>Terjadi Error</h4>
@@ -549,7 +514,6 @@
                                 notificationDiv.innerHTML = errorMessageHTML;
                             }
 
-                            // Aktifkan kembali tombol submit
                             submitButton.disabled = false;
                             submitButton.innerHTML = 'Kumpulkan dan Nilai';
                         });

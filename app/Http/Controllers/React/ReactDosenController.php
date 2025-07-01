@@ -65,13 +65,12 @@ class ReactDosenController extends Controller
             'title' => 'required|string|max:255',
             'folder_path' => 'required|string',
             'description' => 'nullable|string',
-            'picturePath' => 'nullable|image|mimes:jpeg,jpg,png|max:4096', // max 4MB
-            'status' => 'required|string|in:draft,publish', // draff
+            'picturePath' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
+            'status' => 'required|string|in:draft,publish',
         ]);
 
 
-        if ($request->hasFile('picturePath')) { // cek apakah ada gambar yang diupload waktu add materi baru
-            // kalo ada, maka simpan di storage react/profile
+        if ($request->hasFile('picturePath')) {
             $file = $request->file('picturePath');
             $nama_file = time() . "_" . $file->getClientOriginalName();
             $file->storeAs($directory_upload, $nama_file, 'public');
@@ -96,7 +95,7 @@ class ReactDosenController extends Controller
             'title' => 'required|string|max:255',
             'folder_path' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'picturePath' => 'nullable|image|mimes:jpeg,jpg,png|max:4096', // max 4MB
+            'picturePath' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
             'status' => 'required|string|in:draft,publish',
         ]);
 
@@ -107,8 +106,7 @@ class ReactDosenController extends Controller
         $topic->status = $validatedData['status'];
 
         $isSame = false;
-        if ($request->hasFile('picturePath')) {  // cek apakah ada gambar baru yang diupload waktu update
-            // kalo ada, cek apakah sama dengan yang ada di filesystem
+        if ($request->hasFile('picturePath')) {
             $directory_upload = "react/profile";
             $existingFilePath = public_path($directory_upload . '/' . $topic->picturePath);
             if (file_exists($existingFilePath)) {
@@ -134,156 +132,151 @@ class ReactDosenController extends Controller
     }
 
 
-    function add_topics(Request $request, $id)
+    public function add_topics(Request $request, $id)
     {
-        $topic = ReactTopic::findOrFail($id)->load('details');
+        $topic = \App\Models\React\ReactTopic::findOrFail($id)->load('details');
+
+        $topicDetailIds = $topic->details->pluck('id');
+
+        $submissions = DB::table('react_user_submits')
+            ->join('users', 'react_user_submits.user_id', '=', 'users.id')
+            ->join('react_topics_detail', 'react_user_submits.topics_id', '=', 'react_topics_detail.id')
+            ->whereIn('react_user_submits.topics_id', $topicDetailIds)
+            ->select(
+                'react_user_submits.created_at as submission_time',
+                'users.name as user_name',
+                'react_topics_detail.title as topic_title',
+                'react_user_submits.score'
+            )
+            ->orderBy('react_user_submits.created_at', 'desc')
+            ->get();
+
+        $topicFinished = DB::table('react_student_enroll')
+            ->join('users', 'react_student_enroll.id_users', '=', 'users.id')
+            ->join('react_topics_detail', 'react_student_enroll.php_topics_detail_id', '=', 'react_topics_detail.id')
+            ->whereIn('react_student_enroll.php_topics_detail_id', $topicDetailIds)
+            ->where('react_student_enroll.flag', true)
+            ->select(
+                'react_student_enroll.created_at as completion_date',
+                'users.name as user_name',
+                'react_topics_detail.title as topic_title'
+            )
+            ->orderBy('react_student_enroll.created_at', 'desc')
+            ->get();
+
+        $studentRanks = DB::table('react_student_rank')
+            ->join('users', 'react_student_rank.id_user', '=', 'users.id')
+            ->whereIn('react_student_rank.topics_id', $topicDetailIds)
+            ->select(
+                'users.name as user_name',
+                'react_student_rank.best_score as perfect_scores'
+            )
+            ->orderBy('react_student_rank.best_score', 'desc')
+            ->get();
+
         return view('react.teacher.topics_detail', [
-            'hasil'   => $topic,
+            'hasil'         => $topic,
+            'submissions'   => $submissions,
+            'topicFinished' => $topicFinished,
+            'studentRanks'  => $studentRanks,
         ]);
     }
 
     public function simpan(Request $request): RedirectResponse
     {
-        // 1. Validasi Data Masukan
-        // Menggunakan method validate() dari objek Request yang akan otomatis
-        // mengembalikan error jika validasi gagal.
+
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'caption' => 'required|string|max:255',
             'editor' => 'required|string',
             'id' => 'required|int|max:11',
-            'materials' => 'required|file|mimes:pdf|max:10240', // Menggunakan 'mimes:pdf' untuk validasi tipe file
+            'materials' => 'required|file|mimes:pdf|max:10240',
         ]);
-
-        // Catatan: Pengecekan 'if ($request->file('materials')->getClientOriginalExtension() !== 'pdf')'
-        // bisa dihapus karena sudah dicover oleh 'mimes:pdf' di validasi.
-        // Jika validasi 'mimes:pdf' gagal, Laravel akan otomatis mengarahkan kembali
-        // dengan error yang sesuai.
-
         try {
-            // 2. Mengambil informasi topik berdasarkan ID
-            // Menggunakan find() karena 'id' adalah primary key.
-            // findOrFail() akan melempar ModelNotFoundException jika tidak ditemukan.
             $topic = ReactTopic::findOrFail($validatedData['id']);
 
-            // 3. Pengolahan Nama File dan Penyimpanan
             $file = $request->file('materials');
             $originName = $file->getClientOriginalName();
             $fileNameWithoutExtension = pathinfo($originName, PATHINFO_FILENAME);
             $extension = $file->getClientOriginalExtension();
 
-            // Membuat nama file unik dengan timestamp dan mengganti spasi dengan underscore
             $newFileName = str_replace(" ", '_', $fileNameWithoutExtension) . '_' . time() . '.' . $extension;
 
-            // Menentukan path penyimpanan di dalam direktori public
-            // Pastikan direktori 'react/document/' dan sub-direktori '$topic->folder_path' sudah ada atau dibuat.
             $destinationPath = public_path('react/document/' . $topic->folder_path);
 
-            // Memindahkan file ke lokasi tujuan
             $file->move($destinationPath, $newFileName);
 
-            // Path lengkap file yang disimpan (relatif terhadap public_path)
-            // Ini akan disimpan di database.
             $filePathForDb = 'react/document/' . $topic->folder_path . '/' . $newFileName;
 
-            // 4. Membuat Record Detail Topik Baru
             ReactTopic_detail::create([
                 'title' => $validatedData['title'],
                 'react_topic_id' => $validatedData['id'],
-                'controller' => $validatedData['caption'], // Pastikan nama kolom ini benar di DB
+                'controller' => $validatedData['caption'],
                 'description' => $validatedData['editor'],
-                'folder_path' => $filePathForDb, // Simpan path relatif untuk kemudahan akses
+                'folder_path' => $filePathForDb,
                 'file_name' => $newFileName,
                 'status' => 'draft',
             ]);
 
-            // 5. Redirect dan Pemberitahuan Sukses
             $id = $validatedData['id'];
-            // Disarankan menggunakan named routes untuk redirect agar lebih fleksibel
-            // Contoh: return redirect()->route('teacher.topics.add', ['id' => $id])->with('message', 'Data Berhasil Diinputkan');
-            // Jika belum ada named route, penggunaan helper global redirect() lebih umum:
             return redirect("/react/teacher/topics/add/{$id}")->with('message', 'Topik berhasil ditambahkan');
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Tangani jika ReactTopic dengan ID yang diberikan tidak ditemukan
             Log::error("ReactTopic with ID {$validatedData['id']} not found: " . $e->getMessage());
             return redirect()->back()->with('error', 'Topik tidak ditemukan.')->withInput();
         } catch (\Exception $e) {
-            // Tangani error umum lainnya (misalnya gagal move file, error database)
             Log::error("Error saving ReactTopic_detail: " . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan data.')->withInput();
         }
     }
 
 
-public function update_data(Request $request, $id)
-{
-    try {
-        // 1. Validasi data yang masuk dari request
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'controller' => 'nullable|string|max:255', // Sesuai nama kolom di DB
-            'status' => 'required|string|in:draft,publish',
-            // ... tambahkan validasi untuk field lain jika diperlukan
-        ]);
+    public function update_data(Request $request, $id)
+    {
+        try {
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'controller' => 'nullable|string|max:255',
+                'status' => 'required|string|in:draft,publish',
+            ]);
+            $topicDetail = ReactTopic_detail::findOrFail($id);
+            $topicDetail->title = $validatedData['title'];
+            $topicDetail->description = $validatedData['description'];
+            $topicDetail->controller = $validatedData['controller'];
+            $topicDetail->status = $validatedData['status'];
+            if ($request->filled('folder_path') && $request->input('folder_path') !== $topicDetail->folder_path) {
+                $oldPath = public_path('react/document/' . $topicDetail->folder_path . '/' . $topicDetail->file_name);
+                $newPathDir = public_path('react/document/' . $request->input('folder_path'));
+                $newPath = public_path('react/document/' . $request->input('folder_path') . '/' . $topicDetail->file_name);
 
-        // 2. Temukan detail topik berdasarkan ID
-        $topicDetail = ReactTopic_detail::findOrFail($id);
+                if (Storage::exists(str_replace(public_path('/'), '', dirname($oldPath))) && !is_dir($newPathDir)) {
+                    mkdir($newPathDir, 0755, true);
+                }
 
-        // 3. Update atribut detail topik
-        $topicDetail->title = $validatedData['title'];
-        $topicDetail->description = $validatedData['description'];
-        $topicDetail->controller = $validatedData['controller'];
-        $topicDetail->status = $validatedData['status'];
-
-        // 4. Penanganan perubahan folder_path (jika diperlukan)
-        if ($request->filled('folder_path') && $request->input('folder_path') !== $topicDetail->folder_path) {
-            // Lakukan logika pemindahan file jika diperlukan
-            $oldPath = public_path('react/document/' . $topicDetail->folder_path . '/' . $topicDetail->file_name);
-            $newPathDir = public_path('react/document/' . $request->input('folder_path'));
-            $newPath = public_path('react/document/' . $request->input('folder_path') . '/' . $topicDetail->file_name);
-
-            if (Storage::exists(str_replace(public_path('/'), '', dirname($oldPath))) && !is_dir($newPathDir)) {
-                mkdir($newPathDir, 0755, true);
+                if (Storage::exists(str_replace(public_path('/'), '', $oldPath))) {
+                    Storage::move(str_replace(public_path('/'), '', $oldPath), str_replace(public_path('/'), '', $newPath));
+                    $topicDetail->folder_path = $request->input('folder_path');
+                }
             }
-
-            if (Storage::exists(str_replace(public_path('/'), '', $oldPath))) {
-                Storage::move(str_replace(public_path('/'), '', $oldPath), str_replace(public_path('/'), '', $newPath));
-                $topicDetail->folder_path = $request->input('folder_path');
+            if ($request->hasFile('picturePath')) {
+                $directory_upload = "react/profile";
+                if (!empty($topicDetail->picturePath) && Storage::exists($directory_upload . '/' . $topicDetail->picturePath)) {
+                    Storage::delete($directory_upload . '/' . $topicDetail->picturePath);
+                }
+                $file = $request->file('picturePath');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->storeAs($directory_upload, $filename, 'public');
+                $topicDetail->picturePath = $filename;
             }
+            $topicDetail->save();
+            return Redirect::back()->with('message', 'Detail materi berhasil diperbarui!');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return Redirect::back()->with('error', 'Detail materi tidak ditemukan.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return Redirect::back()->withErrors($e)->withInput();
+        } catch (\Exception $e) {
+            Log::error("Error updating ReactTopic_detail with ID {$id}: " . $e->getMessage());
+            return Redirect::back()->with('error', 'Terjadi kesalahan saat memperbarui detail materi.');
         }
-
-        // 5. Penanganan update gambar (jika diperlukan)
-        if ($request->hasFile('picturePath')) {
-            $directory_upload = "react/profile";
-            if (!empty($topicDetail->picturePath) && Storage::exists($directory_upload . '/' . $topicDetail->picturePath)) {
-                Storage::delete($directory_upload . '/' . $topicDetail->picturePath);
-            }
-            $file = $request->file('picturePath');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs($directory_upload, $filename, 'public');
-            $topicDetail->picturePath = $filename;
-        }
-
-        // 6. Penanganan update file (jika diperlukan)
-        // ... logika update file jika ada ...
-
-        // 7. Simpan perubahan ke database
-        $topicDetail->save();
-
-        // 8. Berikan respon redirect ke view
-        return Redirect::back()->with('message', 'Detail materi berhasil diperbarui!');
-        // Atau, jika ingin redirect ke route lain:
-        // return Redirect::route('nama_route_view')->with('message', 'Detail materi berhasil diperbarui!');
-
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        return Redirect::back()->with('error', 'Detail materi tidak ditemukan.');
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return Redirect::back()->withErrors($e)->withInput();
-    } catch (\Exception $e) {
-        Log::error("Error updating ReactTopic_detail with ID {$id}: " . $e->getMessage());
-        return Redirect::back()->with('error', 'Terjadi kesalahan saat memperbarui detail materi.');
     }
-}
-
 }
