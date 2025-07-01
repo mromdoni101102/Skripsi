@@ -382,7 +382,7 @@
                                             </li>
                                             @if ($item['status'] === 'failed' && isset($item['errorMessage']))
                                                 <li class="list-group-item list-group-item-light small">
-                                                    <pre class="mb-0">{{ $item['errorMessage'] }}</pre>
+                                                    <pre class="mb-0" style="white-space: pre-wrap;"><code>{{ $item['errorMessage'] }}</code></pre>
                                                 </li>
                                             @endif
                                         @endforeach

@@ -112,15 +112,11 @@ class ReactLogicalController extends Controller
             $jsonOutput = File::get($fullResultsPath);
             $gradingResult = json_decode($jsonOutput);
 
-            // ==== AWAL PERUBAHAN ====
-            // Hitung durasi eksekusi jika data tersedia
             if (isset($gradingResult->startTime, $gradingResult->testResults[0]->endTime)) {
                 $durationMs = $gradingResult->testResults[0]->endTime - $gradingResult->startTime;
                 $durationSeconds = $durationMs / 1000;
-                // Format menjadi 3 angka desimal seperti di terminal Jest (misal: 2.529 s)
                 $executionTime = number_format($durationSeconds, 3) . ' s';
             }
-            // ==== AKHIR PERUBAHAN ====
 
             $numPassedTests = $gradingResult->numPassedTests ?? 0;
             $numTotalTests = $gradingResult->numTotalTests ?? 0;
@@ -129,10 +125,11 @@ class ReactLogicalController extends Controller
 
             if (!empty($gradingResult->testResults[0]->assertionResults)) {
                 foreach ($gradingResult->testResults[0]->assertionResults as $assertion) {
+                    $rawErrorMessage = !empty($assertion->failureMessages) ? $assertion->failureMessages[0] : null;
                     $feedbackDetails[] = [
                         'title' => $assertion->title,
                         'status' => $assertion->status,
-                        'errorMessage' => !empty($assertion->failureMessages) ? $assertion->failureMessages[0] : null
+                        'errorMessage' => $this->formatJestError($rawErrorMessage)
                     ];
                 }
             }
@@ -217,6 +214,74 @@ class ReactLogicalController extends Controller
         return redirect()->back()->with($responseData);
     }
 
+
+    /**
+     * Menerjemahkan dan menyederhanakan pesan error mentah dari Jest
+     * menjadi umpan balik yang ramah bagi mahasiswa.
+     *
+     * @param string|null $rawError Pesan error mentah dari Jest.
+     * @return string|null Pesan umpan balik yang sudah diterjemahkan dan disederhanakan.
+     */
+    private function formatJestError(?string $rawError): ?string
+    {
+        if (empty($rawError)) {
+            return null;
+        }
+
+        // Pola 1: Menangani error "elemen tidak ditemukan".
+        // === PERBAIKAN DI SINI ===
+        // Menggunakan (.*?) agar tidak "rakus" dan berhenti pada titik pertama.
+        if (preg_match('/Unable to find an element with the text: (.*?)\./', $rawError, $matches)) {
+            $missingText = trim($matches[1]);
+            return "💡 Gagal: Teks '{$missingText}' yang diharapkan tidak dapat ditemukan. Pastikan komponen Anda sudah menampilkan (me-render) teks ini dengan benar.";
+        }
+        // ========================
+
+        // Pola 2: Menangani error "elemen ditemukan lebih dari satu".
+        if (preg_match('/Found multiple elements with the text: (.*)/', $rawError, $matches)) {
+            $duplicateText = trim($matches[1]);
+            return "💡 Gagal: Ditemukan lebih dari satu elemen dengan teks '{$duplicateText}'. Pengujian mengharapkan hanya ada satu. Periksa apakah ada duplikasi data atau komponen.";
+        }
+
+        // Pola 3: Menangani perbandingan nilai yang gagal (Expected vs Received).
+        if (preg_match('/expect\(received\)\.([^)]+)\(([^)]+)\)/', $rawError, $matches)) {
+            $expected = 'N/A';
+            $received = 'N/A';
+
+            if (preg_match('/Expected: (.*)/', $rawError, $expectedMatch)) {
+                $expected = trim($expectedMatch[1]);
+            }
+            if (preg_match('/Received: (.*)/', $rawError, $receivedMatch)) {
+                $received = trim($receivedMatch[1]);
+            }
+
+            return "💡 Gagal: Hasil tidak sesuai dengan yang diharapkan.\n- Diharapkan: {$expected}\n- Diterima:   {$received}";
+        }
+
+        // Pola 4: Menangani error umum seperti TypeError atau ReferenceError.
+        if (preg_match('/(TypeError|ReferenceError): (.*)/', $rawError, $matches)) {
+            $errorType = $matches[1];
+            $errorMessage = $matches[2];
+            $suggestion = '';
+            if ($errorType === 'TypeError') {
+                $suggestion = 'Ini bisa terjadi jika Anda mencoba mengakses properti dari variabel yang `null` atau `undefined`.';
+            }
+            if ($errorType === 'ReferenceError') {
+                $suggestion = 'Ini biasanya terjadi karena ada variabel yang digunakan sebelum dideklarasikan.';
+            }
+            return "💡 Terjadi error pada kode Anda: `{$errorMessage}`.\n{$suggestion}";
+        }
+
+        // Fallback: Jika tidak ada pola yang cocok, tampilkan pesan teknis yang sudah dibersihkan.
+        $cleanError = preg_replace('/\x1B\[[0-9;]*[mGKF]/', '', $rawError);
+        $lines = explode("\n", $cleanError);
+        $errorSummary = [];
+        foreach ($lines as $line) {
+            if (preg_match('/^\s+at\s/', $line)) break; // Hapus stack trace
+            $errorSummary[] = $line;
+        }
+        return "Terjadi kesalahan teknis yang tidak terduga:\n" . trim(implode("\n", $errorSummary));
+    }
     public function getComparisonResults($userId)
     {
         $results = ReactSubmitUser::where('id_user', $userId)->get();
