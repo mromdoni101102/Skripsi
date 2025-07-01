@@ -91,7 +91,7 @@ class ReactController extends Controller
 
         $actual = "";
         $topics = ReactTopic::all();
-        $topics_detail = ReactTopic_detail::all();
+        $topics_detail = ReactTopic_detail::where('id', '>', 39)->get();
         $topicsCount = count($topics);
         $topicsDetailCount = count($topics_detail);
 
@@ -226,7 +226,7 @@ class ReactController extends Controller
             ->distinct('task_id')
             ->count('task_id');
 
-            $uncompletedTasks = ReactTask::where('id_topics', $phpid)
+        $uncompletedTasks = ReactTask::where('id_topics', $phpid)
             ->where(function ($query) {
                 $query->whereHas('react_submit_user', function ($subQuery) {
                     $subQuery->where('id_user', Auth::id())
