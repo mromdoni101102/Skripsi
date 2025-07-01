@@ -106,10 +106,22 @@ class ReactLogicalController extends Controller
         $score = 0;
         $isSuccess = false;
         $feedbackDetails = [];
+        $executionTime = 'N/A'; // Tambahkan variabel default untuk durasi
 
         if (File::exists($fullResultsPath)) {
             $jsonOutput = File::get($fullResultsPath);
             $gradingResult = json_decode($jsonOutput);
+
+            // ==== AWAL PERUBAHAN ====
+            // Hitung durasi eksekusi jika data tersedia
+            if (isset($gradingResult->startTime, $gradingResult->testResults[0]->endTime)) {
+                $durationMs = $gradingResult->testResults[0]->endTime - $gradingResult->startTime;
+                $durationSeconds = $durationMs / 1000;
+                // Format menjadi 3 angka desimal seperti di terminal Jest (misal: 2.529 s)
+                $executionTime = number_format($durationSeconds, 3) . ' s';
+            }
+            // ==== AKHIR PERUBAHAN ====
+
             $numPassedTests = $gradingResult->numPassedTests ?? 0;
             $numTotalTests = $gradingResult->numTotalTests ?? 0;
             $score = ($numTotalTests > 0) ? ($numPassedTests / $numTotalTests) * 100 : 0;
@@ -174,23 +186,35 @@ class ReactLogicalController extends Controller
 
         // Update enrollment status
         if ($countUserTasks == $countAllTasks) {
-            ReactUserEnroll::withoutTimestamps(function() use ($task, $request){
+            ReactUserEnroll::withoutTimestamps(function () use ($task, $request) {
                 return ReactUserEnroll::updateOrCreate(
-                    ['id_users' => Auth::id(),
-                    'php_topics_detail_id' => $task->id_topics],
+                    [
+                        'id_users' => Auth::id(),
+                        'php_topics_detail_id' => $task->id_topics
+                    ],
                     ['flag' => true]
                 );
             });
         }
 
-        // Kirim respon ke frontend
-        return redirect()->back()->with([
-            'score' => round($score),
-            'feedback' => $feedbackDetails,
+        // Data yang akan dikirim kembali sebagai respons
+        $responseData = [
+            'score'   => round($score),
+            'feedback'  => $feedbackDetails,
             'is_success' => $isSuccess,
-            'message' => $isSuccess ? 'Selamat! Semua kriteria terpenuhi.' : 'Penilaian selesai, namun ditemukan beberapa kesalahan. Silakan perbaiki kode Anda.',
-            'task_id' => $taskId,
-        ]);
+            'message'  => $isSuccess ? 'Selamat! Semua kriteria terpenuhi.' : 'Penilaian selesai, namun ditemukan beberapa kesalahan. Silakan perbaiki kode Anda.',
+            'task_id'  => $taskId,
+            'duration'   => $executionTime, // <-- TAMBAHKAN BARIS INI
+        ];
+
+        // PERUBAHAN UTAMA: Cek jika ini adalah request AJAX
+        if ($request->ajax()) {
+            // Jika ya, kirim respons dalam format JSON
+            return response()->json($responseData);
+        }
+
+        // Jika tidak (fallback jika JS gagal), gunakan metode redirect lama
+        return redirect()->back()->with($responseData);
     }
 
     public function getComparisonResults($userId)

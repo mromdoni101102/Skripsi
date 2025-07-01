@@ -319,6 +319,8 @@
 
     @if (isset($flag) && $flag == 0)
 
+        <div id="page-level-alert-container" class="mb-4"></div>
+
         <div class="tasks-container" style="padding: 0px 20px; max-width: 68%; margin-left:5px;">
 
             {{--
@@ -361,6 +363,8 @@
                                     <button type="submit" class="btn btn-success mt-4">Kumpulkan dan Nilai</button>
                                 </div>
                             </div>
+                            {{-- PASTIKAN DIV INI ADA DI DALAM FORM --}}
+                            <div id="notification-{{ $task->id }}" class="mt-4"></div>
 
                             {{-- A unique container for status messages for this specific task --}}
                             @if (session('score') && session('task_id') == $task->id)
@@ -425,164 +429,133 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+    {{-- Ganti seluruh blok <script> Anda dengan versi final yang lebih tangguh ini --}}
     <script>
-        // Fungsi-fungsi ini untuk progress bar, sidebar, dll.
-        // ======================================================================
-
-        function updateProgress(params) {
-
-            function updateProgress(params) {
-
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-                type: "POST",
-                    $.ajax({
-                        type: "POST",
-                        url: "{{ Route('session_progress') }}",
-                        data: {
-                            params: params
-                        },
-                        success: function(response) {
-                            // Jika Anda punya progress bar visual, update di sini
-                            // Contoh: $('#progressbar').css('width', params + '%');
-                        }
-                    });
-            }
-        });
-        }
-
-        const sidebar = document.getElementById("sidebar");
-        if (sidebar) {
-            sidebar.classList.toggle("active");
-        }
-        }
-
-        function toggleItem(item) {
-            // Fungsi untuk membuka/menutup daftar materi di sidebar
-            const content = item.nextElementSibling;
-            const icon = item.querySelector('.list-item-icon');
-            if (content) {
-                content.style.display = content.style.display === 'block' ? 'none' : 'block';
-            }
-            if (icon) {
-                icon.style.transform = content.style.display === 'block' ? 'rotate(180deg)' : 'none';
-            }
-        }
-
-
-        // ======================================================================
-        // BAGIAN 2: KODE BARU UNTUK MENANGANI SEMUA FORM TUGAS
-        // ======================================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Cari SEMUA form yang memiliki class 'task-form'
             const allTaskForms = document.querySelectorAll('.task-form');
 
             allTaskForms.forEach(form => {
                 form.addEventListener('submit', function(event) {
-                    // Mencegah halaman me-reload
                     event.preventDefault();
 
-                    // Dapatkan elemen-elemen penting dari form SPESIFIK yang di-submit ini
                     const taskId = form.querySelector('input[name="task_id"]').value;
                     const notificationDiv = document.getElementById(`notification-${taskId}`);
                     const fileInput = form.querySelector('input[name="uploadFile"]');
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    const pageLevelAlertContainer = document.getElementById(
+                        'page-level-alert-container');
 
-                    // Tampilkan pesan "loading"
-                    notificationDiv.innerHTML =
-                        `<div class="alert alert-info">Sedang menilai, mohon tunggu...</div>`;
+                    if (fileInput.files.length === 0) {
+                        if (notificationDiv) {
+                            notificationDiv.innerHTML =
+                                `<div class="alert alert-danger">Pilih file jawaban Anda terlebih dahulu.</div>`;
+                        }
+                        return;
+                    }
 
-                    // Submit form
-                    form.submit();
-                    // Buat FormData secara manual untuk memastikan task_id terkirim
-                    // const manualFormData = new FormData();
-                    // manualFormData.append('task_id', taskId);
+                    if (notificationDiv) {
+                        notificationDiv.innerHTML =
+                            `<div class="alert alert-info">Sedang menilai, mohon tunggu...</div>`;
+                    }
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = 'Menilai...';
 
-                    // if (fileInput.files.length > 0) {
-                    //     manualFormData.append('uploadFile', fileInput.files[0]);
-                    // } else {
-                    //     notificationDiv.innerHTML =
-                    //         `<div class="alert alert-danger"><h4>Validasi Gagal!</h4><p>Anda harus memilih file untuk di-upload.</p></div>`;
-                    //     return;
-                    // }
+                    const formData = new FormData(form);
 
-                    // Kirim data ke Controller
-                    //     fetch('{{ route('upload_file') }}', {
-                    //             method: 'POST',
-                    //             body: manualFormData,
-                    //             headers: {
-                    //                 'X-CSRF-TOKEN': document.querySelector(
-                    //                     'meta[name="csrf-token"]').getAttribute('content'),
-                    //                 'X-Requested-With': 'XMLHttpRequest',
-                    //             },
-                    //         })
-                    //         .then(response => response.json().then(data => ({
-                    //             status: response.status,
-                    //             body: data
-                    //         })))
-                    //         .then(({
-                    //             status,
-                    //             body
-                    //         }) => {
-                    //             let resultHTML = '';
-                    //             if (status === 200 && body.success) {
-                    //                 const alertClass = body.score === 100 ? 'alert-success' :
-                    //                     'alert-warning';
-                    //                 resultHTML =
-                    //                     `<div class="alert ${alertClass}"><h4>${body.message}</h4><p class="mb-1">Skor Anda: <strong>${body.score}</strong></p><hr><h5 class="mt-3">Rincian Penilaian:</h5><ul class="list-group">`;
-                    //                 body.feedback.forEach(item => {
-                    //                     const statusIcon = item.status === 'passed' ? '✓' :
-                    //                         '✗';
-                    //                     const itemClass = item.status === 'passed' ?
-                    //                         'list-group-item-success' :
-                    //                         'list-group-item-danger';
-                    //                     resultHTML +=
-                    //                         `<li class="list-group-item ${itemClass}"><strong>${statusIcon}</strong> ${item.title}</li>`;
-                    //                     if (item.status === 'failed' && item.errorMessage) {
-                    //                         resultHTML +=
-                    //                             `<li class="list-group-item list-group-item-light small" style="background-color: #f8f9fa;"><pre class="mb-0" style="white-space: pre-wrap; word-break: break-all;"><code>${item.errorMessage}</code></pre></li>`;
-                    //                     }
-                    //                 });
-                    //                 resultHTML += `</ul></div>`;
-                    //             } else {
-                    //                 let errorTitle = body.error || 'Error';
-                    //                 let errorMessage = body.message ||
-                    //                     'Terjadi kesalahan tidak terduga.';
-                    //                 if (status === 422 && body.errors) {
-                    //                     errorTitle = 'Validasi Gagal!';
-                    //                     errorMessage = '<ul class="mb-0">';
-                    //                     for (const key in body.errors) {
-                    //                         body.errors[key].forEach(message => {
-                    //                             errorMessage += `<li>${message}</li>`;
-                    //                         });
-                    //                     }
-                    //                     errorMessage += '</ul>';
-                    //                 }
-                    //                 resultHTML =
-                    //                     `<div class="alert alert-danger"><h4>${errorTitle}</h4><div>${errorMessage}</div>`;
-                    //                 if (body.details) {
-                    //                     resultHTML +=
-                    //                         `<hr><h6 class="mt-3">Detail Teknis (Petunjuk Error):</h6><pre class="mb-0" style="white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto;"><code>${body.details}</code></pre>`;
-                    //                 }
-                    //                 resultHTML += `</div>`;
-                    //                 console.error('Server Response:', body);
-                    //             }
+                    fetch('{{ route('upload_file') }}', {
+                            method: 'POST', // Pastikan ini tetap POST
+                            body: formData,
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                // Jika response status bukan 2xx (misal: 404, 405, 500), lempar error
+                                // Ini akan langsung ditangkap oleh .catch()
+                                throw new Error(
+                                    `HTTP error! status: ${response.status} ${response.statusText}`
+                                );
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Blok ini HANYA berjalan jika response sukses (status 2xx)
+                            const alertClass = data.is_success ? 'alert-success' :
+                                'alert-warning';
 
-                    //             notificationDiv.innerHTML = resultHTML;
-                    //         })
-                    //         .catch(error => {
-                    //             notificationDiv.innerHTML =
-                    //                 `<div class="alert alert-danger">Tidak bisa terhubung ke server. Periksa koneksi internet Anda.</div>`;
-                    //             console.error('Fetch/Network Error:', error);
-                    //         });
+                            // ==== AWAL PERUBAHAN ====
+                            // Bangun HTML dasar untuk hasil
+                            let resultHTML =
+                                `<div class="alert ${alertClass}">
+            <h4>${data.message}</h4>
+            <p class="mb-1">Skor Anda: <strong>${data.score}</strong></p>`;
+
+                            // Tambahkan baris durasi jika data.duration ada
+                            if (data.duration) {
+                                resultHTML +=
+                                    `<p class="mb-1">Waktu Eksekusi: <strong>${data.duration}</strong></p>`;
+                            }
+
+                            // Lanjutkan dengan sisa HTML
+                            resultHTML +=
+                                `<hr><h5 class="mt-3">Rincian Penilaian:</h5><ul class="list-group">`;
+                            // ==== AKHIR PERUBAHAN ====
+
+                            data.feedback.forEach(item => {
+                                const statusIcon = item.status === 'passed' ? '✓' : '✗';
+                                const itemClass = item.status === 'passed' ?
+                                    'list-group-item-success' :
+                                    'list-group-item-danger';
+                                resultHTML +=
+                                    `<li class="list-group-item ${itemClass}"><strong>${statusIcon}</strong> ${item.title}</li>`;
+                                if (item.status === 'failed' && item.errorMessage) {
+                                    resultHTML +=
+                                        `<li class="list-group-item list-group-item-light small"><pre class="mb-0" style="white-space: pre-wrap;"><code>${item.errorMessage}</code></pre></li>`;
+                                }
+                            });
+                            resultHTML += `</ul></div>`;
+
+                            if (notificationDiv) {
+                                notificationDiv.innerHTML = resultHTML;
+                            }
+
+                            if (data.score === 100) {
+                                // ... (logika notifikasi global)
+                            } else {
+                                if (pageLevelAlertContainer) {
+                                    pageLevelAlertContainer.innerHTML = '';
+                                }
+                                submitButton.disabled = false;
+                                submitButton.innerHTML = 'Kumpulkan dan Nilai';
+                            }
+                        })
+                        .catch(error => {
+                            // PERBAIKAN UTAMA DI SINI
+                            // Blok ini sekarang menangani SEMUA jenis error (jaringan, HTTP, dll)
+                            console.error('Fetch Error:', error);
+                            if (notificationDiv) {
+                                // Buat pesan error sendiri, JANGAN gunakan variabel dari .then()
+                                const errorMessageHTML = `
+                                <div class="alert alert-danger">
+                                    <h4>Terjadi Error</h4>
+                                    <p>Gagal berkomunikasi dengan server. Silakan periksa detail di bawah dan coba lagi.</p>
+                                    <hr>
+                                    <pre class="mb-0" style="font-size: 12px;">${error.message}</pre>
+                                </div>
+                            `;
+                                notificationDiv.innerHTML = errorMessageHTML;
+                            }
+
+                            // Aktifkan kembali tombol submit
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = 'Kumpulkan dan Nilai';
+                        });
                 });
             });
-        }); <
-        />
+        });
     </script>
 </body>
 
