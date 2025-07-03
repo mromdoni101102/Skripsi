@@ -171,21 +171,28 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-light bg-light"
+    <nav class="navbar navbar-light bg-light justify-content-between align-items-center"
         style="padding: 15px 20px; border-bottom: 1px solid #E4E4E7; font-family: 'Poppins', sans-serif;">
-        <a class="navbar-brand"
+
+        <a class="navbar-brand d-flex align-items-center"
             href="{{ route('react_welcome', ['type' => request('phpid') && request('phpid') > 39 ? 'advanced' : 'basic']) }}">
             <img src="{{ asset('images/left-arrow.png') }}" style="height: 24px; margin-right: 10px;">
             {{ $row->title }}
+            <span id="learning-timer" class="navbar-text" style="font-weight: bold; font-size: 1.1em; color: #34364A;">
+                Waktu: 00:00:00
+            </span>
         </a>
+
+
     </nav>
+
 
     <!-- Sidebar -->
     <div id="sidebar" class="sidebar"
         style="border-left: 1px solid #E4E4E7; padding: 20px; width: 100%; max-width: 400px;">
         <p class="text-list" style="font-size: 18px; font-weight: 600; font-size: 20px"><img
                 src="{{ asset('images/right.png') }}"
-                style="height: 24px; margin-right: 10px; border:1px solid; border-radius:50%"> Task List</p>
+                style="height: 24px; margin-right: 10px; border:1px solid; border-radius:50%"> Material List</p>
 
         @if ($role == 'student')
             <div class="progress-container">
@@ -340,7 +347,7 @@
 
             @forelse ($tasks as $task)
                 @if ($loop->first)
-                    <h3>Practical Assignment for this Task:</h3>
+                    <h3>Practical Assignment for this Materi:</h3>
                 @endif
 
                 <div class="card mb-4">
@@ -427,6 +434,57 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            // ===================================================================
+            // BAGIAN 1: LOGIKA TIMER (Dari saran saya)
+            // ===================================================================
+
+            // Pastikan elemen untuk timer ada di halaman Anda
+            const timerDisplay = document.getElementById('learning-timer');
+
+            if (timerDisplay) {
+                // Ambil total detik & ID topik dari controller Laravel
+                // Pastikan controller Anda mengirimkan variabel $total_time_in_seconds dan $phpid ke view ini
+                let totalSeconds = {{ $total_time_in_seconds ?? 0 }};
+                const currentTopicId = {{ $phpid ?? 0 }};
+
+                // Fungsi untuk format detik menjadi Jam:Menit:Detik
+                function formatTime(seconds) {
+                    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+                    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+                    const s = (seconds % 60).toString().padStart(2, '0');
+                    return `${h}:${m}:${s}`;
+                }
+
+                // Update tampilan timer pertama kali saat halaman dimuat
+                timerDisplay.textContent = `Waktu: ${formatTime(totalSeconds)}`;
+
+                // Jalankan timer agar bertambah setiap detik
+                const timerInterval = setInterval(function() {
+                    totalSeconds++;
+                    timerDisplay.textContent = `Waktu: ${formatTime(totalSeconds)}`;
+                }, 1000);
+
+                // Fungsi untuk mengirim sinyal 'pause' ke server saat halaman ditutup
+                function pauseTimer() {
+                    const data = new FormData();
+                    data.append('topic_id', currentTopicId);
+                    data.append('_token', '{{ csrf_token() }}');
+                    // Menggunakan navigator.sendBeacon agar request tetap terkirim
+                    navigator.sendBeacon('{{ route('react.pauseTimer') }}', data);
+                }
+
+                // Event listener yang memanggil fungsi pauseTimer saat pengguna akan meninggalkan halaman
+                window.addEventListener('beforeunload', function(event) {
+                    pauseTimer();
+                });
+            }
+
+
+            // ===================================================================
+            // BAGIAN 2: LOGIKA FORM UPLOAD TUGAS (Script Anda)
+            // ===================================================================
+
             const allTaskForms = document.querySelectorAll('.task-form');
 
             allTaskForms.forEach(form => {
@@ -509,7 +567,15 @@
                                 notificationDiv.innerHTML = resultHTML;
                             }
 
-                            if (data.score === 100) {} else {
+                            if (data.is_success) {
+                                // Jika berhasil, tombol tetap disabled dan ada pesan reload
+                                pageLevelAlertContainer.innerHTML =
+                                    `<div class="alert alert-success">Selamat, semua tugas pada materi ini telah selesai! Halaman akan dimuat ulang untuk memperbarui progres...</div>`;
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 3000); // Reload setelah 3 detik
+                            } else {
+                                // Jika gagal, aktifkan kembali tombol
                                 if (pageLevelAlertContainer) {
                                     pageLevelAlertContainer.innerHTML = '';
                                 }

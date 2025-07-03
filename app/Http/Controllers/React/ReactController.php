@@ -3,24 +3,19 @@
 namespace App\Http\Controllers\React;
 
 
-use App\Http\Controllers\Controller;
-use App\Models\NodeJS\Project;
-use App\Models\React\ReactSubmitUser;
+use Illuminate\Http\Request;
 use App\Models\React\ReactTask;
 use App\Models\React\ReactTopic;
-use App\Models\React\ReactTopic_detail;
-use App\Models\React\ReactUserEnroll;
-use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\Process\Process;
+use App\Models\React\ReactSubmitUser;
+use App\Models\React\ReactUserEnroll;
+use App\Models\React\ReactTopic_detail;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon; // <-- PASTIKAN INI ADA
 
 class ReactController extends Controller
 {
@@ -182,102 +177,115 @@ class ReactController extends Controller
 
     function php_material_detail()
     {
-        $phpid  = isset($_GET['phpid']) ? (int)$_GET['phpid'] : '';
-        $start  = isset($_GET['start']) ? (int)$_GET['start'] : '';
-        $output = isset($_GET['output']) ? $_GET['output'] : '';
+        // Bagian 1: Setup variabel dasar
+        $phpid = request()->get('phpid') ? (int)request()->get('phpid') : 0;
+        $start = request()->get('start') ? (int)request()->get('start') : 0;
+        $output = request()->get('output', '');
+        $userId = Auth::id();
 
-        $results = DB::select("select * from react_topics_detail where  react_topic_id =$start  and id ='$phpid' ");
+        // ===================================================================
+        // LOGIKA TIMER BARU YANG LEBIH KUAT
+        // ===================================================================
 
-        foreach ($results as $r) {
+        // Langkah A: "Bersihkan" Sesi Lama yang Menggantung
+        // Cari sesi untuk materi ini yang belum ditutup dari kunjungan terakhir.
+        $orphanedSession = DB::table('react_topics_detail_time')
+            ->where('user_id', $userId)
+            ->where('react_topics_detail_id', $phpid)
+            ->whereNull('end_time')
+            ->first();
 
-            if ($start == $r->react_topic_id) {
-                if (empty($r->file_name)) {
-                    $contain = $r->description;
-                    $pdf_reader = 0;
-                } else {
-                    $contain = $r->file_name;
-                    $pdf_reader = 1;
-                }
-
-                $html_start = $this->html_persyaratan($contain, $pdf_reader);
-            } else {
-                $html_start = "";
-            }
-        }
-        $idUser         = Auth::user()->id;
-        $roleTeacher    = DB::select("select role from users where id = $idUser");
-        $topics = ReactTopic::all();
-        $detail = ReactTopic::findorfail($start);
-        $topicsCount = count($topics);
-        $detailCount = ($topicsCount / $topicsCount) * 10;
-        $topic_tasks = ReactTask::where('id_topics', $phpid)->get();
-
-        $exists = DB::table('react_student_enroll')
-            ->where('id_users', Auth::user()->id)
-            ->where('php_topics_detail_id', $phpid)
-            ->exists();
-
-        if (!$exists) {
-            $flags = $results[0]->flag ?? 0;
-            if ($flags == 0) {
-                DB::table('react_student_enroll')->insert([
-                    'id_users' => Auth::user()->id,
-                    'php_topics_detail_id' => $phpid,
-                    'created_at' => now()
-                ]);
-            }
+        // Jika ada sesi yang menggantung, kita tutup sekarang.
+        // Kita anggap waktu berakhirnya adalah sama dengan waktu pembuatannya,
+        // agar waktu idle tidak ikut terhitung.
+        if ($orphanedSession) {
+            DB::table('react_topics_detail_time')
+                ->where('id', $orphanedSession->id)
+                ->update(['end_time' => $orphanedSession->created_at]);
         }
 
-        $completedTasksCount = ReactSubmitUser::where('id_user', Auth::id())
-            ->whereHas('reactTask', function ($query) {
-                $query->where('materi', 'like', 'React%');
+        // Langkah B: Hitung total waktu dari SEMUA sesi yang sudah selesai.
+        // Karena sesi yang menggantung sudah kita "bersihkan", semua sesi sekarang sudah lengkap.
+        $totalSeconds = 0;
+        $allCompletedSessions = DB::table('react_topics_detail_time')
+            ->where('user_id', $userId)
+            ->where('react_topics_detail_id', $phpid)
+            ->get();
+
+        foreach ($allCompletedSessions as $session) {
+            $startTime = new Carbon($session->start_time);
+            $endTime = new Carbon($session->end_time);
+            $totalSeconds += $startTime->diffInSeconds($endTime);
+        }
+
+        // Langkah C: Buat Sesi BARU untuk kunjungan saat ini
+        // Cek dulu status enrollment
+        $enrollment = \App\Models\React\ReactUserEnroll::firstOrCreate(
+            ['id_users' => $userId, 'php_topics_detail_id' => $phpid]
+        );
+
+        // Jika materi belum selesai, buat sesi baru yang aktif.
+        if ($enrollment->flag != 1) {
+            DB::table('react_topics_detail_time')->insert([
+                'user_id' => $userId,
+                'react_topics_detail_id' => $phpid,
+                'start_time' => now(),
+                'end_time' => null, // Dibiarkan null karena ini sesi aktif
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        // ===================================================================
+        // AKHIR PERBAIKAN
+        // ===================================================================
+
+        // Bagian 3: Mengambil data untuk ditampilkan di view (kode Anda yang lain)
+        $results = DB::table('react_topics_detail')->where('id', $phpid)->first();
+        $html_start = '';
+        $pdf_reader = 0;
+        if ($results) {
+            $html_start = empty($results->file_name) ? $results->description : $results->file_name;
+            $pdf_reader = empty($results->file_name) ? 0 : 1;
+        }
+
+        $topics = \App\Models\React\ReactTopic::all();
+        $detail = \App\Models\React\ReactTopic::find($start);
+        $topic_tasks = \App\Models\React\ReactTask::where('id_topics', $phpid)->get();
+
+        $completedTasksCount = \App\Models\React\ReactSubmitUser::where('id_user', $userId)
+            ->whereHas('reactTask', function ($query) use ($phpid) {
+                $query->where('id_topics', $phpid);
             })
             ->where('status', 'Benar')
             ->distinct('task_id')
             ->count('task_id');
 
-        $uncompletedTasks = ReactTask::where('id_topics', $phpid)
-            ->where(function ($query) {
-                $query->whereHas('react_submit_user', function ($subQuery) {
-                    $subQuery->where('id_user', Auth::id())
-                        ->where('status', '!=', 'Benar')
-                        ->whereIn('id', function ($inner) {
-                            $inner->selectRaw('MAX(id)')
-                                ->from('react_submit_user')
-                                ->whereColumn('task_id', 'react_task.id')
-                                ->where('id_user', Auth::id())
-                                ->groupBy('task_id');
-                        });
-                })
-                    ->orWhereDoesntHave('react_submit_user', function ($cookies) {
-                        $cookies->where('id_user', Auth::id());
-                    });
-            })
-            ->get();
+        $progress = (count($topic_tasks) > 0) ? ($completedTasksCount / count($topic_tasks)) * 100 : 0;
 
-        if (count($topic_tasks) != 0) {
-            $progress = ($completedTasksCount / count($topic_tasks)) * 100;
-        } else {
-            $progress = 0;
-        }
+        $uncompletedTasks = \App\Models\React\ReactTask::where('id_topics', $phpid)
+            ->whereDoesntHave('react_submit_user', function ($query) use ($userId) {
+                $query->where('id_user', $userId)->where('status', 'Benar');
+            })->get();
 
 
         return view('react.student.material.topics_detail', [
-            'row'        => $detail,
-            'tasks'      => $uncompletedTasks,
-            'topics'     => $topics,
-            'phpid'      => $phpid,
+            'row' => $detail,
+            'tasks' => $uncompletedTasks,
+            'topics' => $topics,
+            'phpid' => $phpid,
             'html_start' => $html_start,
             'pdf_reader' => $pdf_reader,
-            'topicsCount' => $topicsCount,
-            'detailCount' => $detailCount,
-            'output'     => $output,
-            'flag'       => $results[0] ? $results[0]->flag : 0,
-            'listTask'   => [],
-            'role'       => $roleTeacher[0] ? $roleTeacher[0]->role : '',
+            'topicsCount' => $topics->count(),
+            'detailCount' => $topic_tasks->count(),
+            'output' => $output,
+            'flag' => $enrollment->flag,
+            'role' => Auth::user()->role,
             'progress' => round($progress, 0),
+            'total_time_in_seconds' => $totalSeconds,
         ]);
     }
+
+
     function html_start()
     {
         $html = "<div style='text-align:center;font-size:18px'><em>Modul kelas Belajar Pengembangan Aplikasi Android Intermediate dalam bentuk cetak (buku) maupun elektronik sudah didaftarkan ke Dirjen HKI, Kemenkumham RI. Segala bentuk penggandaan dan atau komersialisasi, sebagian atau seluruh bagian, baik cetak maupun elektronik terhadap modul kelas <em>Belajar Pengembangan Aplikasi Android Intermediate</em> tanpa izin formal tertulis kepada pemilik hak cipta akan diproses melalui jalur hukum.</em></div>";
@@ -516,5 +524,26 @@ class ReactController extends Controller
     function session_progress()
     {
         session(['params' => $_POST['params']]);
+    }
+
+    /**
+     * Method baru untuk meng-update end_time saat user meninggalkan halaman.
+     */
+    public function pauseReactTimer(Request $request)
+    {
+        $userId = Auth::id();
+        $topicId = $request->input('topic_id');
+
+        // Cari sesi yang aktif (end_time is NULL) dan update
+        DB::table('react_topics_detail_time') // <-- NAMA TABEL BARU
+            ->where('user_id', $userId)
+            ->where('react_topics_detail_id', $topicId)
+            ->whereNull('end_time')
+            ->update([
+                'end_time' => now(),
+                'updated_at' => now(),
+            ]);
+
+        return response()->json(['status' => 'success']);
     }
 }

@@ -4,22 +4,9 @@
     use App\Http\Controllers\React\ReactDosenController;
     use App\Http\Controllers\React\Student\ReactLogicalController;
     use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Facades\Hash;
-    use App\Http\Controllers\AuthController;
-
-    use App\Http\Controllers\PHP\PHPController;
-    use App\Http\Controllers\PHP\PHPDosenController;
-    use App\Http\Controllers\PHP\Student\DashboardUnitControllers;
-    use App\Http\Controllers\PHP\Student\StudikasusController;
-
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\Auth;
-    use Illuminate\Support\Facades\Response;
-    use Illuminate\Support\Facades\Session;
-    use Illuminate\Support\Facades\Storage;
 
     Route::group(['middleware' => ['auth']], function () {
-            Route::prefix('react')->group(function () {
+        Route::prefix('react')->group(function () {
             Route::get('/start', [ReactController::class, 'index'])->name('react_welcome');
             Route::get('/detail-topics', [ReactController::class, 'php_material_detail'])->name('react_material_detail');
             Route::get('/php-admin', [ReactController::class, 'php_admin'])->name('php_admin');
@@ -32,6 +19,7 @@
             Route::any('/akhir-ujian', [ReactController::class, 'unittesting'])->name('unittesting');
             Route::any('/baru/submit_score', [ReactController::class, 'submit_score_baru'])->name('submit_score_baru');
             Route::post('/upload-file', [ReactLogicalController::class, 'uploadFile'])->name('upload_file');
+            Route::post('/react/pause-timer', [ReactController::class, 'pauseReactTimer'])->name('react.pauseTimer');
         });
     });
 
