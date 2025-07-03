@@ -37,39 +37,30 @@ describe('Praktikum: Komponen MyProfile dan MyAvatar', () => {
         render(<MyProfile />);
     });
 
-    test('Kriteria 1: Harus me-render DUA gambar avatar', () => {
-        // Cari semua elemen dengan peran 'img'
+   test('Kriteria 1 [W=10]: Harus me-render DUA gambar avatar', () => {
         const avatars = screen.getAllByRole('img');
         expect(avatars).toHaveLength(2);
     });
 
-    test('Kriteria 2: Avatar Gregorio Y. Zara harus memiliki atribut yang benar', () => {
-        // Cari gambar berdasarkan teks alternatifnya
+    test('Kriteria 2 [W=25]: Avatar Gregorio Y. Zara harus memiliki atribut yang benar', () => {
         const gregorioAvatar = screen.getByAltText('Gregorio Y. Zara');
         expect(gregorioAvatar).toBeInTheDocument();
         expect(gregorioAvatar).toHaveClass('avatar');
-        // Verifikasi src berdasarkan hasil dari fungsi tiruan kita
         expect(gregorioAvatar).toHaveAttribute('src', 'https://i.imgur.com/7vQD0fPs.jpg');
-        // Verifikasi ukuran
         expect(gregorioAvatar).toHaveAttribute('width', '40');
     });
 
-    test('Kriteria 3: Avatar Ada Lovelace harus memiliki atribut yang benar', () => {
-        // Cari gambar berdasarkan teks alternatifnya
+    test('Kriteria 3 [W=25]: Avatar Ada Lovelace harus memiliki atribut yang benar', () => {
         const adaAvatar = screen.getByAltText('Ada Lovelace');
         expect(adaAvatar).toBeInTheDocument();
         expect(adaAvatar).toHaveClass('avatar');
-        // Verifikasi src berdasarkan hasil dari fungsi tiruan kita
         expect(adaAvatar).toHaveAttribute('src', 'https://i.imgur.com/rDE2SL3Lb.jpg');
-        // Verifikasi ukuran
         expect(adaAvatar).toHaveAttribute('width', '100');
     });
 
-    test('Kriteria 4: Logika untuk ukuran gambar harus benar (size < 90 vs size >= 90)', () => {
-        // Kita butuh referensi ke fungsi tiruan kita untuk memeriksa panggilannya
+    // Bobot tertinggi karena menguji logika kondisional, bukan hanya tampilan.
+    test('Kriteria 4 [W=35]: Logika untuk ukuran gambar harus benar (size < 90 vs size >= 90)', () => {
         const { getImageUrlV2 } = require('../../utils/utils.js');
-
-        // Panggil ulang render di sini agar kita bisa memastikan mock-nya bersih
         render(<MyProfile />);
 
         // Cek bahwa untuk Gregorio (size 40), size code yang dikirim adalah 's'
@@ -85,7 +76,7 @@ describe('Praktikum: Komponen MyProfile dan MyAvatar', () => {
         );
     });
 
-    test('Kriteria 5: Komponen "MyProfile" harus diexport dengan benar', () => {
+    test('Kriteria 5 [W=5]: Komponen "MyProfile" harus diexport dengan benar', () => {
         expect(MyProfile).toBeDefined();
     });
 });

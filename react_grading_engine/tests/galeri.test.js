@@ -39,50 +39,46 @@ describe('Praktikum: Komponen Galeri Interaktif', () => {
         render(<Galeri />);
     });
 
-    test('Kriteria 1: Harus menampilkan data patung pertama saat awal render', () => {
-        // Cek judul, artis, dan gambar dari data pertama
+   test('Kriteria 1 [W=15]: Harus menampilkan data patung pertama saat awal render', () => {
         expect(screen.getByRole('heading', { name: /Homenaje a la Neurocirugía/i })).toBeInTheDocument();
         expect(screen.getByText(/oleh Marta Colvin Andrade/i)).toBeInTheDocument();
         expect(screen.getByAltText('Patung Perunggu A')).toBeInTheDocument();
         expect(screen.getByText('(1 dari 3)')).toBeInTheDocument();
     });
 
-    test('Kriteria 2: Tombol "Artikel Sebelumnya" harus nonaktif (disabled) saat awal render', () => {
+    test('Kriteria 2 [W=15]: Tombol "Artikel Sebelumnya" harus nonaktif (disabled) saat awal render', () => {
         const prevButton = screen.getByRole('button', { name: /Artikel Sebelumnya/i });
         expect(prevButton).toBeDisabled();
     });
 
-    test('Kriteria 3: Menekan tombol "Artikel Selanjutnya" akan menampilkan data patung kedua', () => {
+    // Bobot tinggi karena menguji logika utama event handler dan state update.
+    test('Kriteria 3 [W=25]: Menekan tombol "Artikel Selanjutnya" akan menampilkan data patung kedua', () => {
         const nextButton = screen.getByRole('button', { name: /Artikel Selanjutnya/i });
         fireEvent.click(nextButton);
 
-        // Cek apakah data patung kedua sekarang muncul
         expect(screen.getByRole('heading', { name: /Floralis Genérica/i })).toBeInTheDocument();
         expect(screen.getByAltText('Patung Bunga Metalik')).toBeInTheDocument();
         expect(screen.getByText('(2 dari 3)')).toBeInTheDocument();
     });
 
-    test('Kriteria 4: Setelah menekan "Selanjutnya", tombol "Sebelumnya" harus aktif', () => {
+    // Bobot tinggi karena menguji reaktivitas UI setelah state berubah.
+    test('Kriteria 4 [W=20]: Setelah menekan "Selanjutnya", tombol "Sebelumnya" harus aktif', () => {
         const nextButton = screen.getByRole('button', { name: /Artikel Selanjutnya/i });
         const prevButton = screen.getByRole('button', { name: /Artikel Sebelumnya/i });
 
-        fireEvent.click(nextButton); // Pindah ke item kedua
+        fireEvent.click(nextButton);
 
-        // Tombol "Sebelumnya" sekarang harus bisa diklik
         expect(prevButton).not.toBeDisabled();
     });
 
-    test('Kriteria 5: Tombol "Selanjutnya" harus nonaktif saat di item terakhir', () => {
+    // Bobot tinggi karena menguji logika kondisional di akhir array.
+    test('Kriteria 5 [W=25]: Tombol "Selanjutnya" harus nonaktif saat di item terakhir', () => {
         const nextButton = screen.getByRole('button', { name: /Artikel Selanjutnya/i });
 
-        // Klik dua kali untuk sampai ke item terakhir (item ke-3)
         fireEvent.click(nextButton);
         fireEvent.click(nextButton);
 
-        // Cek apakah data terakhir muncul
         expect(screen.getByRole('heading', { name: /Eternal Presence/i })).toBeInTheDocument();
-
-        // Tombol "Selanjutnya" sekarang harus nonaktif
         expect(nextButton).toBeDisabled();
     });
 });

@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\React\Student;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\React\ReactTask;
-use Illuminate\Support\Facades\Auth;
-use App\Models\React\ReactSubmitUser;
-use App\Models\React\ReactTaskSubmission;
-use App\Models\React\ReactTopic_detail;
-use App\Models\React\ReactUserCheck;
-use App\Models\React\ReactUserEnroll;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use App\Models\React\ReactSubmitUser;
+use App\Models\React\ReactUserEnroll;
 use Symfony\Component\Process\Process;
+use App\Models\React\ReactTaskSubmission;
 
 class ReactLogicalController extends Controller
 {
@@ -108,13 +107,27 @@ class ReactLogicalController extends Controller
                 $executionTime = number_format($durationSeconds, 3) . ' s';
             }
 
-            $numPassedTests = $gradingResult->numPassedTests ?? 0;
-            $numTotalTests = $gradingResult->numTotalTests ?? 0;
-            $score = ($numTotalTests > 0) ? ($numPassedTests / $numTotalTests) * 100 : 0;
-            $isSuccess = $gradingResult->success ?? false;
+            $totalWeightedScore = 0; // Ini adalah Σ(Si * Wi)
+            $totalWeights = 0;       // Ini adalah Σ(Wi)
+
+
 
             if (!empty($gradingResult->testResults[0]->assertionResults)) {
                 foreach ($gradingResult->testResults[0]->assertionResults as $assertion) {
+                    $weight = 0;
+                    // Ekstrak bobot dari judul tes menggunakan regular expression
+                    if (preg_match('/\[\s*W\s*=\s*(\d+)\s*\]/i', $assertion->title, $matches)) {
+                        $weight = (int)$matches[1];
+                    }
+
+                    $totalWeights += $weight;
+
+                    // S_i adalah 1 jika lulus, 0 jika gagal
+                    if ($assertion->status === 'passed') {
+                        $totalWeightedScore += $weight; // Sama dengan (1 * weight)
+                    }
+
+                    // (Mengambil feedback tetap sama)
                     $rawErrorMessage = !empty($assertion->failureMessages) ? $assertion->failureMessages[0] : null;
                     $feedbackDetails[] = [
                         'title' => $assertion->title,
@@ -122,6 +135,23 @@ class ReactLogicalController extends Controller
                         'errorMessage' => $this->formatJestError($rawErrorMessage)
                     ];
                 }
+            }
+            // Hitung skor akhir sesuai rumus
+            $score = ($totalWeights > 0) ? ($totalWeightedScore / $totalWeights) * 100 : 0;
+            // Anggap sukses jika semua tes lulus (skor 100)
+            $isSuccess = abs($score - 100) < 0.01;
+            // ===================================================================
+            // === PERUBAHAN SELESAI ===
+            // ===================================================================
+        } else {
+            // Jika file hasil JSON tidak ada (kemungkinan error fatal)
+            // (Logika ini sudah ada di kode Anda, biarkan saja)
+            if (empty($feedbackDetails)) {
+                $feedbackDetails = [[
+                    'title' => 'Pengecekan Kode Gagal (Error Sintaks/Dependensi)',
+                    'status' => 'failed',
+                    'errorMessage' => "Terdapat error fatal pada kode Anda atau file yang dibutuhkan tidak ditemukan.\n\nDETAIL TEKNIS:\n" . $processErrorOutput
+                ]];
             }
         }
 
@@ -165,17 +195,22 @@ class ReactLogicalController extends Controller
             ->count();
 
         $countAllTasks = ReactTask::where('id_topics', $task->id_topics)->count();
+        $topicIsNowComplete = false;
 
         if ($countUserTasks == $countAllTasks) {
+            $topicIsNowComplete = true;
             ReactUserEnroll::withoutTimestamps(function () use ($task, $request) {
-                return ReactUserEnroll::updateOrCreate(
-                    [
-                        'id_users' => Auth::id(),
-                        'php_topics_detail_id' => $task->id_topics
-                    ],
+                ReactUserEnroll::updateOrCreate(
+                    ['id_users' => Auth::id(), 'php_topics_detail_id' => $task->id_topics],
                     ['flag' => true]
                 );
             });
+
+            DB::table('react_topics_detail_time')
+                ->where('user_id', Auth::id())
+                ->where('react_topics_detail_id', $task->id_topics)
+                ->whereNull('end_time')
+                ->update(['end_time' => now()]);
         }
 
         $responseData = [
@@ -185,6 +220,7 @@ class ReactLogicalController extends Controller
             'message'  => $isSuccess ? 'Selamat! Semua kriteria terpenuhi.' : 'Penilaian selesai, namun ditemukan beberapa kesalahan. Silakan perbaiki kode Anda.',
             'task_id'  => $taskId,
             'duration'   => $executionTime,
+            'topic_completed' => $topicIsNowComplete,
         ];
 
         if ($request->ajax()) {

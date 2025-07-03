@@ -38,41 +38,36 @@ describe('Praktikum: Komponen Accordion', () => {
         render(<Accordion />);
     });
 
-    test('Kriteria 1: Harus menampilkan judul utama "Almaty, Kazakhstan"', () => {
+     test('Kriteria 1 [W=5]: Harus menampilkan judul utama "Almaty, Kazakhstan"', () => {
         expect(screen.getByRole('heading', { name: 'Almaty, Kazakhstan' })).toBeInTheDocument();
     });
 
-    test('Kriteria 2: Panel pertama ("About") harus aktif dan menampilkan isinya saat awal render', () => {
-        // Cari konten dari panel pertama
+    test('Kriteria 2 [W=20]: Panel pertama ("About") harus aktif dan menampilkan isinya saat awal render', () => {
         const panelContent = screen.getByText(/Dengan populasi sekitar 2 juta orang/i);
         expect(panelContent).toBeInTheDocument();
 
-        // Pastikan tombol "Tampilkan" untuk panel kedua ADA
         const showButtonForPanel2 = screen.getByRole('button', { name: 'Tampilkan' });
         expect(showButtonForPanel2).toBeInTheDocument();
     });
 
-    test('Kriteria 3: Menekan tombol "Tampilkan" pada panel kedua akan menampilkan isinya', () => {
+    test('Kriteria 3 [W=30]: Menekan tombol "Tampilkan" pada panel kedua akan menampilkan isinya', () => {
         const showButton = screen.getByRole('button', { name: /Tampilkan/i });
-
-        // Klik tombol "Tampilkan" pada panel kedua
         fireEvent.click(showButton);
 
-        // Cari konten dari panel kedua, sekarang seharusnya muncul
         const panel2Content = screen.getByText(/Nama "Almaty" berasal dari kata/i);
         expect(panel2Content).toBeInTheDocument();
     });
 
-    test('Kriteria 4: Saat panel kedua aktif, konten panel pertama harus hilang', () => {
+    // Bobot tertinggi karena menguji logika inti "lifting state up".
+    test('Kriteria 4 [W=40]: Saat panel kedua aktif, konten panel pertama harus hilang', () => {
         const showButton = screen.getByRole('button', { name: /Tampilkan/i });
         fireEvent.click(showButton);
 
-        // Konten panel pertama seharusnya sudah tidak ada lagi di dokumen
         const panel1Content = screen.queryByText(/Dengan populasi sekitar 2 juta orang/i);
         expect(panel1Content).not.toBeInTheDocument();
     });
 
-    test('Kriteria 5: Komponen "Accordion" harus diexport dengan benar', () => {
+    test('Kriteria 5 [W=5]: Komponen "Accordion" harus diexport dengan benar', () => {
         expect(Accordion).toBeDefined();
     });
 });

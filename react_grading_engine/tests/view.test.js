@@ -67,72 +67,50 @@ describe('Praktikum: Aplikasi Restoran (Studi Kasus)', () => {
         global.alert.mockClear();
     });
 
-    test('Kriteria 1: Harus menampilkan judul dan 3 menu item saat awal render', () => {
+     test('Kriteria 1 [W=15]: Harus menampilkan judul dan 3 menu item saat awal render', () => {
         expect(screen.getByRole('heading', { name: /Daftar Menu/i })).toBeInTheDocument();
-
         const menuItems = screen.getAllByTestId('menu-item');
         expect(menuItems).toHaveLength(3);
-
         expect(screen.getByText(/Nasi Goreng/i)).toBeInTheDocument();
         expect(screen.getByText(/Ayam Bakar/i)).toBeInTheDocument();
         expect(screen.getByText(/Es Teh Manis/i)).toBeInTheDocument();
     });
 
-    test('Kriteria 2: Menambah item ke keranjang harus memperbarui total belanja', async () => {
-        // Cari semua tombol "Tambah"
+    // Bobot tinggi karena menguji logika state untuk menambah item dan total.
+    test('Kriteria 2 [W=30]: Menambah item ke keranjang harus memperbarui total belanja', async () => {
         const addButtons = screen.getAllByRole('button', { name: /Tambah/i });
-
-        // Klik tombol tambah untuk Nasi Goreng (25000)
         await user.click(addButtons[0]);
-
-        // Tunggu dan periksa apakah total berubah
         const totalElement = await screen.findByText(/Total: Rp 25,000/i);
         expect(totalElement).toBeInTheDocument();
-
-        // Klik tombol tambah untuk Ayam Bakar (35000)
         await user.click(addButtons[1]);
-
-        // Tunggu dan periksa apakah total terakumulasi dengan benar
         const finalTotalElement = await screen.findByText(/Total: Rp 60,000/i);
         expect(finalTotalElement).toBeInTheDocument();
     });
 
-    test('Kriteria 3: Menghapus item dari keranjang harus memperbarui total belanja', async () => {
+    // Bobot tinggi karena menguji logika state untuk menghapus item dan mengurangi total.
+    test('Kriteria 3 [W=30]: Menghapus item dari keranjang harus memperbarui total belanja', async () => {
         const addButtons = screen.getAllByRole('button', { name: /Tambah/i });
-
-        // Tambah 2 item dulu
-        await user.click(addButtons[0]); // Nasi Goreng
-        await user.click(addButtons[1]); // Ayam Bakar
-
-        // Tunggu sampai item muncul di keranjang
+        await user.click(addButtons[0]);
+        await user.click(addButtons[1]);
         await screen.findByTestId('cart');
-
-        // Cari tombol hapus dan klik yang pertama (untuk Nasi Goreng)
         const removeButtons = screen.getAllByRole('button', { name: /Hapus/i });
         await user.click(removeButtons[0]);
-
-        // Tunggu dan periksa apakah total berkurang
         const totalElement = await screen.findByText(/Total: Rp 35,000/i);
         expect(totalElement).toBeInTheDocument();
     });
 
-    test('Kriteria 4: Tombol "Checkout" harus mengosongkan keranjang dan total', async () => {
+    // Bobot tinggi karena menguji logika untuk mereset state aplikasi.
+    test('Kriteria 4 [W=20]: Tombol "Checkout" harus mengosongkan keranjang dan total', async () => {
         const addButtons = screen.getAllByRole('button', { name: /Tambah/i });
         await user.click(addButtons[0]);
-
-        // Tunggu sampai tombol checkout muncul
         const checkoutButton = await screen.findByRole('button', { name: /Checkout/i });
         await user.click(checkoutButton);
-
-        // Periksa apakah alert dipanggil
         expect(global.alert).toHaveBeenCalledWith('Terima kasih! Pesanan Anda sedang diproses.');
-
-        // Tunggu dan periksa apakah total kembali ke 0
         const totalElement = await screen.findByText(/Total: Rp 0/i);
         expect(totalElement).toBeInTheDocument();
     });
 
-    test('Kriteria 5: Komponen "View" harus diexport dengan benar', () => {
+    test('Kriteria 5 [W=5]: Komponen "View" harus diexport dengan benar', () => {
         expect(View).toBeDefined();
     });
 });

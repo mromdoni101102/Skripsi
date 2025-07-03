@@ -30,55 +30,50 @@ describe('Praktikum: Komponen PackingList', () => {
         render(<PackingList />);
     });
 
-    test('Kriteria 1: Harus menampilkan judul utama dengan benar', () => {
+       test('Kriteria 1 [W=5]: Harus menampilkan judul utama dengan benar', () => {
         const heading = screen.getByRole('heading', { level: 1, name: /Sally Ride's Packing List/i });
         expect(heading).toBeInTheDocument();
     });
 
-    test('Kriteria 2: Harus me-render struktur dasar (section > ul > li)', () => {
-        const list = screen.getByRole('list'); // Mencari <ul>
+    test('Kriteria 2 [W=20]: Harus me-render struktur dasar (section > ul > li)', () => {
+        const list = screen.getByRole('list');
         expect(list).toBeInTheDocument();
-
-        const section = list.closest('section'); // Mencari parent <section> dari <ul>
+        const section = list.closest('section');
         expect(section).toBeInTheDocument();
-
-        const listItems = screen.getAllByRole('listitem'); // Mencari semua <li>
+        const listItems = screen.getAllByRole('listitem');
         expect(listItems).toHaveLength(3);
     });
 
-    test('Kriteria 3: Semua item list harus memiliki class "item"', () => {
+    test('Kriteria 3 [W=10]: Semua item list harus memiliki class "item"', () => {
         const listItems = screen.getAllByRole('listitem');
         listItems.forEach(item => {
             expect(item).toHaveClass('item');
         });
     });
 
-    test('Kriteria 4: Item yang sudah dikemas (isPacked=true) harus dirender dengan benar', () => {
+    // Bobot tertinggi karena menguji logika kondisional yang kompleks.
+    test('Kriteria 4 [W=30]: Item yang sudah dikemas (isPacked=true) harus dirender dengan benar', () => {
         const spaceSuit = screen.getByText(/Space suit/i);
         const helmet = screen.getByText(/Helmet with a golden leaf/i);
 
-        // Memeriksa apakah teks mengandung centang
         expect(spaceSuit).toHaveTextContent('✅');
         expect(helmet).toHaveTextContent('✅');
 
-        // Memeriksa apakah teks tersebut berada di dalam tag <del>
-        // .closest('del') akan mencari elemen <del> terdekat dari elemen teks tersebut
         expect(spaceSuit.closest('del')).toBeInTheDocument();
         expect(helmet.closest('del')).toBeInTheDocument();
     });
 
-    test('Kriteria 5: Item yang belum dikemas (isPacked=false) harus dirender dengan benar', () => {
+    // Bobot tertinggi karena menguji logika kondisional (kasus sebaliknya).
+    test('Kriteria 5 [W=30]: Item yang belum dikemas (isPacked=false) harus dirender dengan benar', () => {
         const photo = screen.getByText(/Photo of Tam/i);
 
-        // Memeriksa apakah teks TIDAK mengandung centang atau silang dari contoh sebelumnya
         expect(photo).not.toHaveTextContent('✅');
         expect(photo).not.toHaveTextContent('❌');
 
-        // Memeriksa apakah teks tersebut TIDAK berada di dalam tag <del>
         expect(photo.closest('del')).toBeNull();
     });
 
-    test('Kriteria 6: Komponen "PackingList" dan "Item" harus diexport dengan benar', () => {
+    test('Kriteria 6 [W=5]: Komponen "PackingList" dan "Item" harus diexport dengan benar', () => {
         expect(PackingList).toBeDefined();
     });
 });

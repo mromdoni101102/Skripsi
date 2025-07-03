@@ -39,24 +39,23 @@ describe('Praktikum: Komponen MyProfileV2', () => {
         render(<MyProfileV2 />);
     });
 
-    test('Kriteria 1: Harus me-render DUA komponen Card (tiruan)', () => {
-        // Kita cari berdasarkan class 'card' yang ada di komponen tiruan kita.
+ test('Kriteria 1 [W=15]: Harus me-render DUA komponen Card (tiruan)', () => {
         const cardElements = screen.getAllByRole('generic', { name: '' }).filter(el => el.classList.contains('card'));
         expect(cardElements).toHaveLength(2);
     });
 
-    test('Kriteria 2: Card pertama harus berisi judul "Foto" dan gambar avatar', () => {
+    // Bobot tinggi karena menguji komposisi dan props children yang benar untuk card pertama.
+    test('Kriteria 2 [W=30]: Card pertama harus berisi judul "Foto" dan gambar avatar', () => {
         const photoHeading = screen.getByRole('heading', { name: /Foto/i, level: 1 });
         expect(photoHeading).toBeInTheDocument();
 
         const avatarImage = screen.getByAltText('Aklilu Lemma');
         expect(avatarImage).toBeInTheDocument();
 
-        // Memastikan judul dan gambar berada dalam satu "Card" yang sama
         expect(photoHeading.parentElement).toBe(avatarImage.parentElement);
     });
 
-    test('Kriteria 3: Gambar avatar harus memiliki atribut yang benar', () => {
+    test('Kriteria 3 [W=15]: Gambar avatar harus memiliki atribut yang benar', () => {
         const avatarImage = screen.getByAltText('Aklilu Lemma');
         expect(avatarImage).toHaveClass('avatar');
         expect(avatarImage).toHaveAttribute('src', 'https://i.imgur.com/OKS67lhm.jpg');
@@ -64,7 +63,8 @@ describe('Praktikum: Komponen MyProfileV2', () => {
         expect(avatarImage).toHaveAttribute('height', '70');
     });
 
-    test('Kriteria 4: Card kedua harus berisi judul "Tentang" dan paragraf deskripsi', () => {
+    // Bobot tinggi karena menguji komposisi dan props children yang benar untuk card kedua.
+    test('Kriteria 4 [W=30]: Card kedua harus berisi judul "Tentang" dan paragraf deskripsi', () => {
         const aboutHeading = screen.getByRole('heading', { name: /Tentang/i, level: 1 });
         expect(aboutHeading).toBeInTheDocument();
 
@@ -72,20 +72,18 @@ describe('Praktikum: Komponen MyProfileV2', () => {
         expect(description).toBeInTheDocument();
         expect(description.tagName.toLowerCase()).toBe('p');
 
-        // Memastikan judul dan paragraf berada dalam satu "Card" yang sama
         expect(aboutHeading.parentElement).toBe(description.parentElement);
     });
 
-    test('Kriteria 5: Kedua judul ("Foto" & "Tentang") harus berada di dalam tag <h1>', () => {
+    test('Kriteria 5 [W=5]: Kedua judul ("Foto" & "Tentang") harus berada di dalam tag <h1>', () => {
         const headings = screen.getAllByRole('heading', { level: 1 });
         expect(headings).toHaveLength(2);
 
-        // Memeriksa teks dari setiap heading
         expect(screen.getByRole('heading', { name: /Foto/i, level: 1 })).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: /Tentang/i, level: 1 })).toBeInTheDocument();
     });
 
-    test('Kriteria 6: Komponen "MyProfileV2" harus diexport sebagai default dengan benar', () => {
+    test('Kriteria 6 [W=5]: Komponen "MyProfileV2" harus diexport sebagai default dengan benar', () => {
         expect(MyProfileV2).toBeDefined();
     });
 });

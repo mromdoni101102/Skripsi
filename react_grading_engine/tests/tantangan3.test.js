@@ -29,8 +29,7 @@ describe('Praktikum: Komponen Drink (Tantangan 3)', () => {
         render(<Tantangan3 />);
     });
 
-    test('Kriteria 1: Harus me-render DUA komponen Drink, untuk "tea" dan "coffee"', () => {
-        // Cari kedua judul minuman
+     test('Kriteria 1 [W=15]: Harus me-render DUA komponen Drink, untuk "tea" dan "coffee"', () => {
         const teaHeading = screen.getByRole('heading', { name: /tea/i });
         const coffeeHeading = screen.getByRole('heading', { name: /coffee/i });
 
@@ -38,35 +37,29 @@ describe('Praktikum: Komponen Drink (Tantangan 3)', () => {
         expect(coffeeHeading).toBeInTheDocument();
     });
 
-    test('Kriteria 2: Data untuk "tea" harus ditampilkan dengan benar', () => {
-        // Cari elemen yang berisi teks 'leaf', yang seharusnya hanya ada di bagian teh
+    test('Kriteria 2 [W=25]: Data untuk "tea" harus ditampilkan dengan benar', () => {
         const teaPart = screen.getByText('leaf');
         expect(teaPart).toBeInTheDocument();
-        // Pastikan parentnya adalah elemen <dd>
         expect(teaPart.tagName.toLowerCase()).toBe('dd');
 
-        // Cari elemen yang berisi teks kafein teh
         const teaCaffeine = screen.getByText(/15–70 mg\/cup/i);
         expect(teaCaffeine).toBeInTheDocument();
     });
 
-    test('Kriteria 3: Data untuk "coffee" harus ditampilkan dengan benar', () => {
-        // Cari elemen yang berisi teks 'bean', yang seharusnya hanya ada di bagian kopi
+    test('Kriteria 3 [W=25]: Data untuk "coffee" harus ditampilkan dengan benar', () => {
         const coffeePart = screen.getByText('bean');
         expect(coffeePart).toBeInTheDocument();
         expect(coffeePart.tagName.toLowerCase()).toBe('dd');
 
-        // Cari elemen yang berisi teks kafein kopi
         const coffeeCaffeine = screen.getByText(/80–185 mg\/cup/i);
         expect(coffeeCaffeine).toBeInTheDocument();
     });
 
-    test('Kriteria 4: Struktur HTML untuk setiap minuman harus benar (section > h1 + dl)', () => {
-        // Cari semua elemen <section>
+    // Bobot tertinggi karena menguji struktur HTML semantik yang spesifik.
+    test('Kriteria 4 [W=30]: Struktur HTML untuk setiap minuman harus benar (section > h1 + dl)', () => {
         const sections = screen.getAllByRole('generic').filter(el => el.tagName.toLowerCase() === 'section');
-        expect(sections).toHaveLength(2); // Harus ada 2 section
+        expect(sections).toHaveLength(2);
 
-        // Periksa setiap section
         sections.forEach(section => {
             const heading = section.querySelector('h1');
             const definitionList = section.querySelector('dl');
@@ -75,8 +68,7 @@ describe('Praktikum: Komponen Drink (Tantangan 3)', () => {
         });
     });
 
-    test('Kriteria 5: Komponen "Tantangan3" harus diexport dengan benar', () => {
+    test('Kriteria 5 [W=5]: Komponen "Tantangan3" harus diexport dengan benar', () => {
         expect(Tantangan3).toBeDefined();
     });
-
 });

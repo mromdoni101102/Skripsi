@@ -42,52 +42,42 @@ describe('Praktikum: Komponen MenuItem', () => {
         render(<MenuItem {...itemProps} />);
     });
 
-    test('Kriteria 1: Harus menampilkan nama dan harga item dengan benar', () => {
-        // Cari elemen nama berdasarkan perannya sebagai heading
+     test('Kriteria 1 [W=30]: Harus menampilkan nama dan harga item dengan benar', () => {
         const nameElement = screen.getByRole('heading', { name: /Nasi Goreng Spesial/i });
         expect(nameElement).toBeInTheDocument();
 
-        // Cari elemen harga. Menggunakan regex agar lebih fleksibel dengan format (Rp 35.000 atau Rp 35,000)
         const priceElement = screen.getByText(/Rp 35[.,]000/);
         expect(priceElement).toBeInTheDocument();
     });
 
-    test('Kriteria 2: Harus menampilkan tombol "Tambah"', () => {
+    test('Kriteria 2 [W=10]: Harus menampilkan tombol "Tambah"', () => {
         const addButton = screen.getByRole('button', { name: /Tambah/i });
         expect(addButton).toBeInTheDocument();
     });
 
-    test('Kriteria 3: Fungsi "onAdd" harus terpanggil saat tombol "Tambah" diklik', () => {
+    // Bobot tertinggi karena menguji interaksi dan pemanggilan fungsi dari props.
+    test('Kriteria 3 [W=35]: Fungsi "onAdd" harus terpanggil saat tombol "Tambah" diklik', () => {
         const addButton = screen.getByRole('button', { name: /Tambah/i });
-
-        // Simulasikan klik pada tombol
         fireEvent.click(addButton);
-
-        // Periksa apakah fungsi onAdd (yang sudah kita mock) dipanggil
         expect(mockOnAdd).toHaveBeenCalledTimes(1);
     });
 
-    test('Kriteria 4: Struktur komponen harus benar (div > div > h2 + p dan button)', () => {
-        // Ambil container utama yang dirender
+    test('Kriteria 4 [W=20]: Struktur komponen harus benar (div > div > h2 + p dan button)', () => {
         const { container } = render(<MenuItem {...itemProps} />);
         const mainDiv = container.firstChild;
 
-        // Pastikan pembungkus utamanya adalah div
         expect(mainDiv.tagName.toLowerCase()).toBe('div');
 
-        // Pastikan di dalamnya ada div untuk teks dan ada button
         const contentDiv = mainDiv.querySelector('div');
         const button = mainDiv.querySelector('button');
-
         expect(contentDiv).toBeInTheDocument();
         expect(button).toBeInTheDocument();
 
-        // Pastikan di dalam contentDiv ada h2 dan p
         expect(contentDiv.querySelector('h2')).toBeInTheDocument();
         expect(contentDiv.querySelector('p')).toBeInTheDocument();
     });
 
-    test('Kriteria 5: Komponen "MenuItem" harus diexport dengan benar', () => {
+    test('Kriteria 5 [W=5]: Komponen "MenuItem" harus diexport dengan benar', () => {
         expect(MenuItem).toBeDefined();
     });
 });

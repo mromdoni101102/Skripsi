@@ -339,78 +339,61 @@
     @else
     @endif
 
-    @if (isset($flag) && $flag == 0)
+    {{-- Cek dulu apakah pengguna punya akses ke materi ini --}}
+    @if (isset($has_access) && $has_access)
 
-        <div id="page-level-alert-container" class="mb-4"></div>
+        {{-- Pengguna punya akses, sekarang cek apakah masih ada tugas yang harus dikerjakan --}}
+        @if ($tasks->isNotEmpty())
 
-        <div class="tasks-container" style="padding: 0px 20px; max-width: 68%; margin-left:5px;">
+            {{-- JIKA MASIH ADA TUGAS: Tampilkan form-formnya --}}
+            <div id="page-level-alert-container" class="mb-4"></div>
+            <div class="tasks-container" style="padding: 0px 20px; max-width: 68%; margin-left:5px;">
+                <h3>Practical Assignment for this Materi:</h3>
 
-            @forelse ($tasks as $task)
-                @if ($loop->first)
-                    <h3>Practical Assignment for this Materi:</h3>
-                @endif
+                @foreach ($tasks as $task)
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h4 class="card-title">{{ $task->task_name }}</h4>
+                            <hr>
+                            <form id="form-task-{{ $task->id }}" class="task-form" method="POST"
+                                action="{{ route('upload_file') }}" enctype="multipart/form-data">
+                                @csrf
+                                <input type="hidden" name="task_id" value="{{ $task->id }}">
 
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h4 class="card-title">{{ $task->task_name }}</h4>
-                        <hr>
-                        <form id="form-task-{{ $task->id }}" class="task-form" method="POST"
-                            action="{{ route('upload_file') }}" enctype="multipart/form-data">
-                            @csrf
-                            <input type="hidden" name="task_id" value="{{ $task->id }}">
-
-                            <div class="d-flex align-items-center mt-3">
-                                <div class="col-md-8">
-                                    <div class="form-group">
-                                        <label class="mb-2" for="file-{{ $task->id }}">Upload File Jawaban
-                                            (.js)
-                                        </label>
-
-                                        <input type="file" name="uploadFile" id="file-{{ $task->id }}"
-                                            class="form-control" required>
+                                <div class="d-flex align-items-center mt-3">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label class="mb-2" for="file-{{ $task->id }}">Upload File Jawaban
+                                                (.js)
+                                            </label>
+                                            <input type="file" name="uploadFile" id="file-{{ $task->id }}"
+                                                class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 ms-3">
+                                        <button type="submit" class="btn btn-success mt-4">Kumpulkan dan
+                                            Nilai</button>
                                     </div>
                                 </div>
-                                <div class="col-md-4 ms-3">
-                                    <button type="submit" class="btn btn-success mt-4">Kumpulkan dan Nilai</button>
-                                </div>
-                            </div>
-                            <div id="notification-{{ $task->id }}" class="mt-4"></div>
+                                <div id="notification-{{ $task->id }}" class="mt-4"></div>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            {{-- JIKA SUDAH TIDAK ADA TUGAS LAGI: Tampilkan pesan selamat --}}
+            <div style="padding: 0px 20px; max-width: 68%; margin-left:5px; margin-bottom: 50px;">
+                <div class="alert alert-success">
+                    <h4>Luar Biasa! 🎉</h4>
+                    <p>Anda sudah menyelesaikan semua tugas untuk materi ini. Silakan lanjutkan ke materi berikutnya.
+                    </p>
+                </div>
+            </div>
 
-                            @if (session('score') && session('task_id') == $task->id)
-                                <div class="alert {{ session('is_success') ? 'alert-success' : 'alert-warning' }}">
-                                    <h4>{{ session('message') }}</h4>
-                                    <p class="mb-1">Skor Anda: <strong>{{ session('score') }}</strong></p>
-                                    <hr>
-                                    <h5 class="mt-3">Rincian Penilaian:</h5>
-                                    <ul class="list-group">
-                                        @foreach (session('feedback') as $item)
-                                            <li
-                                                class="list-group-item {{ $item['status'] === 'passed' ? 'list-group-item-success' : 'list-group-item-danger' }}">
-                                                <strong>{{ $item['status'] === 'passed' ? '✓' : '✗' }}</strong>
-                                                {{ $item['title'] }}
-                                            </li>
-                                            @if ($item['status'] === 'failed' && isset($item['errorMessage']))
-                                                <li class="list-group-item list-group-item-light small">
-                                                    <pre class="mb-0" style="white-space: pre-wrap;"><code>{{ $item['errorMessage'] }}</code></pre>
-                                                </li>
-                                            @endif
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            @endif
-                        </form>
-                    </div>
-                </div>
-            @empty
-                <div style="padding: 0px 20px; max-width: 68%; margin-left:5px; margin-bottom: 50px;">
-                    <div class="alert alert-success">
-                        <h4>Perhatian!</h4>
-                        <p>Anda Sudah Menyelesaikan Semua Tugas untuk Materi ini.</p>
-                    </div>
-                </div>
-            @endforelse
-        </div>
+        @endif
     @else
+        {{-- JIKA PENGGUNA TIDAK PUNYA AKSES SAMA SEKALI: Tampilkan peringatan --}}
         <div style="padding: 0px 20px; max-width: 68%; margin-left:5px; margin-bottom: 50px;">
             <div class="alert alert-warning">
                 <h4>Perhatian!</h4>
@@ -435,20 +418,19 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            // ===================================================================
-            // BAGIAN 1: LOGIKA TIMER (Dari saran saya)
-            // ===================================================================
+            // DEKLARASIKAN timerInterval DI SINI agar bisa diakses oleh semua fungsi di bawahnya
+            let timerInterval = null;
 
-            // Pastikan elemen untuk timer ada di halaman Anda
+            // ===================================================================
+            // BAGIAN 1: LOGIKA TIMER
+            // ===================================================================
             const timerDisplay = document.getElementById('learning-timer');
 
             if (timerDisplay) {
-                // Ambil total detik & ID topik dari controller Laravel
-                // Pastikan controller Anda mengirimkan variabel $total_time_in_seconds dan $phpid ke view ini
                 let totalSeconds = {{ $total_time_in_seconds ?? 0 }};
                 const currentTopicId = {{ $phpid ?? 0 }};
+                const isFinished = {{ $flag ?? 0 }};
 
-                // Fungsi untuk format detik menjadi Jam:Menit:Detik
                 function formatTime(seconds) {
                     const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
                     const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -456,35 +438,31 @@
                     return `${h}:${m}:${s}`;
                 }
 
-                // Update tampilan timer pertama kali saat halaman dimuat
                 timerDisplay.textContent = `Waktu: ${formatTime(totalSeconds)}`;
 
-                // Jalankan timer agar bertambah setiap detik
-                const timerInterval = setInterval(function() {
-                    totalSeconds++;
-                    timerDisplay.textContent = `Waktu: ${formatTime(totalSeconds)}`;
-                }, 1000);
+                if (isFinished != 1) {
+                    // JANGAN GUNAKAN 'const' lagi di sini agar tidak membuat variabel baru
+                    timerInterval = setInterval(function() {
+                        totalSeconds++;
+                        timerDisplay.textContent = `Waktu: ${formatTime(totalSeconds)}`;
+                    }, 1000);
 
-                // Fungsi untuk mengirim sinyal 'pause' ke server saat halaman ditutup
-                function pauseTimer() {
-                    const data = new FormData();
-                    data.append('topic_id', currentTopicId);
-                    data.append('_token', '{{ csrf_token() }}');
-                    // Menggunakan navigator.sendBeacon agar request tetap terkirim
-                    navigator.sendBeacon('{{ route('react.pauseTimer') }}', data);
+                    function pauseTimer() {
+                        const data = new FormData();
+                        data.append('topic_id', currentTopicId);
+                        data.append('_token', '{{ csrf_token() }}');
+                        navigator.sendBeacon('{{ route('react.pauseTimer') }}', data);
+                    }
+
+                    window.addEventListener('beforeunload', function(event) {
+                        pauseTimer();
+                    });
                 }
-
-                // Event listener yang memanggil fungsi pauseTimer saat pengguna akan meninggalkan halaman
-                window.addEventListener('beforeunload', function(event) {
-                    pauseTimer();
-                });
             }
 
-
             // ===================================================================
-            // BAGIAN 2: LOGIKA FORM UPLOAD TUGAS (Script Anda)
+            // BAGIAN 2: LOGIKA FORM UPLOAD TUGAS
             // ===================================================================
-
             const allTaskForms = document.querySelectorAll('.task-form');
 
             allTaskForms.forEach(form => {
@@ -528,18 +506,15 @@
                             if (!response.ok) {
                                 throw new Error(
                                     `HTTP error! status: ${response.status} ${response.statusText}`
-                                );
+                                    );
                             }
                             return response.json();
                         })
                         .then(data => {
                             const alertClass = data.is_success ? 'alert-success' :
                                 'alert-warning';
-
                             let resultHTML =
-                                `<div class="alert ${alertClass}">
-                                <h4>${data.message}</h4>
-                                <p class="mb-1">Skor Anda: <strong>${data.score}</strong></p>`;
+                                `<div class="alert ${alertClass}"><h4>${data.message}</h4><p class="mb-1">Skor Anda: <strong>${data.score}</strong></p>`;
 
                             if (data.duration) {
                                 resultHTML +=
@@ -568,35 +543,39 @@
                             }
 
                             if (data.is_success) {
-                                // Jika berhasil, tombol tetap disabled dan ada pesan reload
-                                pageLevelAlertContainer.innerHTML =
-                                    `<div class="alert alert-success">Selamat, semua tugas pada materi ini telah selesai! Halaman akan dimuat ulang untuk memperbarui progres...</div>`;
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 3000); // Reload setelah 3 detik
-                            } else {
-                                // Jika gagal, aktifkan kembali tombol
-                                if (pageLevelAlertContainer) {
-                                    pageLevelAlertContainer.innerHTML = '';
+                                submitButton.disabled = true;
+                                submitButton.innerHTML = '✔ Selesai';
+                                if (fileInput) {
+                                    fileInput.disabled = true;
                                 }
+                            } else {
                                 submitButton.disabled = false;
                                 submitButton.innerHTML = 'Kumpulkan dan Nilai';
                             }
+
+                            // ===================================================================
+                            // === BAGIAN PENTING UNTUK MENGHENTIKAN TIMER SETELAH SUBMIT ===
+                            // ===================================================================
+                            if (data.topic_completed) {
+                                if (timerInterval) {
+                                    clearInterval(timerInterval);
+                                    console.log('Timer stopped: Topic completed.');
+                                }
+                                if (pageLevelAlertContainer) {
+                                    pageLevelAlertContainer.innerHTML =
+                                        `<div class="alert alert-success">Selamat, semua tugas pada materi ini telah selesai!</div>`;
+                                }
+                            }
+                            // ===================================================================
+
                         })
                         .catch(error => {
                             console.error('Fetch Error:', error);
                             if (notificationDiv) {
-                                const errorMessageHTML = `
-                                <div class="alert alert-danger">
-                                    <h4>Terjadi Error</h4>
-                                    <p>Gagal berkomunikasi dengan server. Silakan periksa detail di bawah dan coba lagi.</p>
-                                    <hr>
-                                    <pre class="mb-0" style="font-size: 12px;">${error.message}</pre>
-                                </div>
-                            `;
+                                const errorMessageHTML =
+                                    `<div class="alert alert-danger"><h4>Terjadi Error</h4><p>Gagal berkomunikasi dengan server.</p><hr><pre class="mb-0" style="font-size: 12px;">${error.message}</pre></div>`;
                                 notificationDiv.innerHTML = errorMessageHTML;
                             }
-
                             submitButton.disabled = false;
                             submitButton.innerHTML = 'Kumpulkan dan Nilai';
                         });

@@ -28,51 +28,42 @@ const Card = submission.Card || submission.default || submission;
 // ======================================================================
 describe('Praktikum: Komponen Card', () => {
 
-  test('Kriteria 1: Harus me-render sebuah div luar dengan class "card"', () => {
-    // Kita render dengan konten dummy untuk dicari
+ test('Kriteria 1 [W=15]: Harus me-render sebuah div luar dengan class "card"', () => {
     const { container } = render(<Card>Konten Tes</Card>);
-
-    // container.firstChild adalah elemen paling luar yang dirender
     const outerDiv = container.firstChild;
     expect(outerDiv).toHaveClass('card');
   });
 
-  test('Kriteria 2: Harus me-render sebuah div dalam dengan class "card-content"', () => {
+  test('Kriteria 2 [W=15]: Harus me-render sebuah div dalam dengan class "card-content"', () => {
     const { container } = render(<Card>Konten Tes</Card>);
     const outerDiv = container.firstChild;
-
-    // outerDiv.firstChild adalah elemen pertama di dalam div.card
     const innerDiv = outerDiv.firstChild;
     expect(innerDiv).toHaveClass('card-content');
   });
 
-  test('Kriteria 3: Harus bisa menampilkan konten teks sederhana (children)', () => {
+  // Bobot tinggi karena menguji konsep utama props.children
+  test('Kriteria 3 [W=30]: Harus bisa menampilkan konten teks sederhana (children)', () => {
     const teksAnak = "Ini adalah konten di dalam Card.";
     render(<Card>{teksAnak}</Card>);
-
-    // Cari apakah teks tersebut muncul di layar
     const renderedText = screen.getByText(teksAnak);
     expect(renderedText).toBeInTheDocument();
   });
 
-  test('Kriteria 4: Harus bisa menampilkan konten JSX yang lebih kompleks (children)', () => {
+  // Bobot tertinggi karena menguji props.children dengan konten kompleks (JSX).
+  test('Kriteria 4 [W=35]: Harus bisa menampilkan konten JSX yang lebih kompleks (children)', () => {
     render(
       <Card>
         <h2>Judul di Dalam Card</h2>
         <p>Paragraf di dalam Card.</p>
       </Card>
     );
-
-    // Cari apakah kedua elemen tersebut muncul di layar
     const heading = screen.getByRole('heading', { name: /Judul di Dalam Card/i });
     const paragraph = screen.getByText(/Paragraf di dalam Card/i);
-
     expect(heading).toBeInTheDocument();
     expect(paragraph).toBeInTheDocument();
   });
 
-  test('Kriteria 5: Komponen "Card" harus diexport dengan benar', () => {
-      // Tes ini memastikan mahasiswa tidak lupa mengekspor komponen mereka
+  test('Kriteria 5 [W=5]: Komponen "Card" harus diexport dengan benar', () => {
       expect(Card).toBeDefined();
   });
 

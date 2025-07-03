@@ -177,35 +177,23 @@ class ReactController extends Controller
 
     function php_material_detail()
     {
-        // Bagian 1: Setup variabel dasar
         $phpid = request()->get('phpid') ? (int)request()->get('phpid') : 0;
         $start = request()->get('start') ? (int)request()->get('start') : 0;
         $output = request()->get('output', '');
         $userId = Auth::id();
 
-        // ===================================================================
-        // LOGIKA TIMER BARU YANG LEBIH KUAT
-        // ===================================================================
-
-        // Langkah A: "Bersihkan" Sesi Lama yang Menggantung
-        // Cari sesi untuk materi ini yang belum ditutup dari kunjungan terakhir.
         $orphanedSession = DB::table('react_topics_detail_time')
             ->where('user_id', $userId)
             ->where('react_topics_detail_id', $phpid)
             ->whereNull('end_time')
             ->first();
 
-        // Jika ada sesi yang menggantung, kita tutup sekarang.
-        // Kita anggap waktu berakhirnya adalah sama dengan waktu pembuatannya,
-        // agar waktu idle tidak ikut terhitung.
         if ($orphanedSession) {
             DB::table('react_topics_detail_time')
                 ->where('id', $orphanedSession->id)
                 ->update(['end_time' => $orphanedSession->created_at]);
         }
 
-        // Langkah B: Hitung total waktu dari SEMUA sesi yang sudah selesai.
-        // Karena sesi yang menggantung sudah kita "bersihkan", semua sesi sekarang sudah lengkap.
         $totalSeconds = 0;
         $allCompletedSessions = DB::table('react_topics_detail_time')
             ->where('user_id', $userId)
@@ -218,28 +206,21 @@ class ReactController extends Controller
             $totalSeconds += $startTime->diffInSeconds($endTime);
         }
 
-        // Langkah C: Buat Sesi BARU untuk kunjungan saat ini
-        // Cek dulu status enrollment
         $enrollment = \App\Models\React\ReactUserEnroll::firstOrCreate(
             ['id_users' => $userId, 'php_topics_detail_id' => $phpid]
         );
 
-        // Jika materi belum selesai, buat sesi baru yang aktif.
         if ($enrollment->flag != 1) {
             DB::table('react_topics_detail_time')->insert([
                 'user_id' => $userId,
                 'react_topics_detail_id' => $phpid,
                 'start_time' => now(),
-                'end_time' => null, // Dibiarkan null karena ini sesi aktif
+                'end_time' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
-        // ===================================================================
-        // AKHIR PERBAIKAN
-        // ===================================================================
 
-        // Bagian 3: Mengambil data untuk ditampilkan di view (kode Anda yang lain)
         $results = DB::table('react_topics_detail')->where('id', $phpid)->first();
         $html_start = '';
         $pdf_reader = 0;
@@ -262,6 +243,10 @@ class ReactController extends Controller
 
         $progress = (count($topic_tasks) > 0) ? ($completedTasksCount / count($topic_tasks)) * 100 : 0;
 
+        $has_access = \App\Models\React\ReactUserEnroll::where('id_users', $userId)
+            ->where('php_topics_detail_id', $phpid)
+            ->exists();
+
         $uncompletedTasks = \App\Models\React\ReactTask::where('id_topics', $phpid)
             ->whereDoesntHave('react_submit_user', function ($query) use ($userId) {
                 $query->where('id_user', $userId)->where('status', 'Benar');
@@ -271,6 +256,7 @@ class ReactController extends Controller
         return view('react.student.material.topics_detail', [
             'row' => $detail,
             'tasks' => $uncompletedTasks,
+            'has_access' => $has_access, 
             'topics' => $topics,
             'phpid' => $phpid,
             'html_start' => $html_start,

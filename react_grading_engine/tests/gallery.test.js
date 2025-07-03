@@ -19,13 +19,13 @@ describe('Praktikum: Komponen Gallery', () => {
         render(<Gallery />);
     });
 
-    test('Kriteria 1: Harus me-render 3 gambar', () => {
+    test('Kriteria 1 [W=50] : Harus me-render 3 gambar', () => {
         // Kita uji hasil akhir yang sebenarnya, yaitu munculnya 3 gambar.
         const images = screen.getAllByRole('img');
         expect(images).toHaveLength(3);
     });
 
-    test('Kriteria 2: Komponen "Gallery" harus diexport dengan benar', () => {
+    test('Kriteria 2 [W=50] : Komponen "Gallery" harus diexport dengan benar', () => {
         expect(Gallery).toBeDefined();
     });
 });

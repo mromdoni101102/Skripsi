@@ -30,60 +30,50 @@ describe('Praktikum: Komponen PackingList (Tantangan 1)', () => {
         render(<Tantangan1 />);
     });
 
-    test('Kriteria 1: Harus menampilkan judul utama "Sally Ride\'s Packing List"', () => {
+    test('Kriteria 1 [W=5]: Harus menampilkan judul utama "Sally Ride\'s Packing List"', () => {
         const heading = screen.getByRole('heading', { level: 1, name: /Sally Ride's Packing List/i });
         expect(heading).toBeInTheDocument();
     });
 
-    test('Kriteria 2: Harus me-render struktur dasar (section > ul > 3 li)', () => {
-        const list = screen.getByRole('list'); // Mencari <ul>
+    test('Kriteria 2 [W=15]: Harus me-render struktur dasar (section > ul > 3 li)', () => {
+        const list = screen.getByRole('list');
         expect(list).toBeInTheDocument();
-
-        // Memastikan list berada di dalam section
         const section = list.closest('section');
         expect(section).toBeInTheDocument();
-
-        const listItems = screen.getAllByRole('listitem'); // Mencari semua <li>
+        const listItems = screen.getAllByRole('listitem');
         expect(listItems).toHaveLength(3);
     });
 
-    test('Kriteria 3: Semua item list harus memiliki class "item"', () => {
+    test('Kriteria 3 [W=10]: Semua item list harus memiliki class "item"', () => {
         const listItems = screen.getAllByRole('listitem');
         listItems.forEach(item => {
             expect(item).toHaveClass('item');
         });
     });
 
-    test('Kriteria 4: Item yang dikemas (isPacked=true) harus menampilkan teks dan simbol ✅', () => {
-        // Cari item berdasarkan teksnya dan pastikan ada tanda centang
+    // Bobot tinggi karena menguji satu cabang dari logika kondisional.
+    test('Kriteria 4 [W=25]: Item yang dikemas (isPacked=true) harus menampilkan teks dan simbol ✅', () => {
         const spaceSuit = screen.getByText(/Space suit/i);
         expect(spaceSuit).toHaveTextContent('Space suit ✅');
-
         const helmet = screen.getByText(/Helmet with a golden leaf/i);
         expect(helmet).toHaveTextContent('Helmet with a golden leaf ✅');
     });
 
-    test('Kriteria 5: Item yang belum dikemas (isPacked=false) harus menampilkan teks dan simbol ❌', () => {
-        // Cari item berdasarkan teksnya dan pastikan ada tanda silang
+    // Bobot tinggi karena menguji cabang lain dari logika kondisional.
+    test('Kriteria 5 [W=25]: Item yang belum dikemas (isPacked=false) harus menampilkan teks dan simbol ❌', () => {
         const photo = screen.getByText(/Photo of Tam/i);
         expect(photo).toHaveTextContent('Photo of Tam ❌');
     });
 
-    // Tes yang baru (lebih andal)
-    test('Kriteria 6: Harus ada tepat 2 item yang dikemas (✅) dan 1 item yang tidak (❌)', () => {
-        // 1. Ambil semua elemen <li>
+    test('Kriteria 6 [W=15]: Harus ada tepat 2 item yang dikemas (✅) dan 1 item yang tidak (❌)', () => {
         const listItems = screen.getAllByRole('listitem');
-
-        // 2. Saring item yang teksnya mengandung simbol ✅
         const packedItems = listItems.filter(item => item.textContent.includes('✅'));
         expect(packedItems).toHaveLength(2);
-
-        // 3. Saring item yang teksnya mengandung simbol ❌
         const unpackedItems = listItems.filter(item => item.textContent.includes('❌'));
         expect(unpackedItems).toHaveLength(1);
     });
 
-    test('Kriteria 7: Komponen harus diexport sebagai default dengan benar', () => {
+    test('Kriteria 7 [W=5]: Komponen harus diexport sebagai default dengan benar', () => {
         expect(Tantangan1).toBeDefined();
     });
 });
