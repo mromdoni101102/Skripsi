@@ -173,7 +173,8 @@
     <!-- Navbar -->
     <nav class="navbar navbar-light bg-light"
         style="padding: 15px 20px; border-bottom: 1px solid #E4E4E7; font-family: 'Poppins', sans-serif;">
-        <a class="navbar-brand" href="{{ route('react_welcome') }}">
+        <a class="navbar-brand"
+            href="{{ route('react_welcome', ['type' => request('phpid') && request('phpid') > 39 ? 'advanced' : 'basic']) }}">
             <img src="{{ asset('images/left-arrow.png') }}" style="height: 24px; margin-right: 10px;">
             {{ $row->title }}
         </a>
@@ -205,12 +206,28 @@
                         $display = '';
                         $transform = '';
                     }
+                    // 1. Determine the required type ('advanced' or 'basic') from the request 'phpid'.
+                    // 1. Safely check for 'phpid' and determine the type.
+                    // This prevents errors if 'phpid' is not present in the request.
+                    $phpId = request('phpid');
+                    $type = $phpId && $phpId > 39 ? 'advanced' : 'basic';
 
-                    $row = DB::table('react_topics')
+                    // 2. Build the base query.
+                    $query = DB::table('react_topics')
                         ->leftJoin('react_topics_detail', 'react_topics.id', '=', 'react_topics_detail.react_topic_id')
                         ->select('*')
-                        ->where('react_topics_detail.react_topic_id', '=', $topic->id)
-                        ->get();
+                        ->where('react_topics_detail.react_topic_id', '=', $topic->id);
+
+                    // 3. Use standard PHP if/elseif to add conditional clauses.
+                    if ($type == 'advanced') {
+                        $query->where('react_topics_detail.id', '>', 39);
+                    } elseif ($type == 'basic') {
+                        // This handles cases where id is less than or equal to 39
+                        $query->where('react_topics_detail.id', '<=', 39);
+                    }
+
+                    $row = $query->get();
+
                     $no = 1;
                 @endphp
                 @foreach ($row as $r)
@@ -323,7 +340,7 @@
 
             @forelse ($tasks as $task)
                 @if ($loop->first)
-                    <h3>Tugas Praktik untuk Materi Ini:</h3>
+                    <h3>Practical Assignment for this Task:</h3>
                 @endif
 
                 <div class="card mb-4">

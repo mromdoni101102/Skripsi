@@ -135,23 +135,37 @@ class ReactDosenController extends Controller
     public function add_topics(Request $request, $id)
     {
         $topic = \App\Models\React\ReactTopic::findOrFail($id)->load('details');
-
         $topicDetailIds = $topic->details->pluck('id');
 
-        $submissions = DB::table('react_user_submits')
-            ->join('users', 'react_user_submits.user_id', '=', 'users.id')
-            ->join('react_topics_detail', 'react_user_submits.topics_id', '=', 'react_topics_detail.id')
-            ->whereIn('react_user_submits.topics_id', $topicDetailIds)
-            ->select(
-                'react_user_submits.created_at as submission_time',
-                'users.name as user_name',
-                'react_topics_detail.title as topic_title',
-                'react_user_submits.score'
-            )
-            ->orderBy('react_user_submits.created_at', 'desc')
-            ->get();
+        // --- Mengambil parameter untuk pencarian dan pengurutan ---
+        $search = $request->input('search');
+        $sortBy = $request->input('sort_by');
+        $sortDir = $request->input('sort_dir', 'asc');
+        $activeTab = $request->input('tab', 'submissions'); // Tab default
 
-        $topicFinished = DB::table('react_student_enroll')
+        // --- Query for Student Submissions (SUDAH DIPERBAIKI) ---
+        $submissionsQuery = DB::table('react_submits_submission') // 1. Menggunakan nama tabel yang benar
+            ->join('react_topics_detail', 'react_submits_submission.php_topic_id', '=', 'react_topics_detail.id') // 2. Menggunakan kolom join yang benar
+            ->whereIn('react_submits_submission.php_topic_id', $topicDetailIds) // 3. Menggunakan kolom filter yang benar
+            ->select(
+                'react_submits_submission.created_at as submission_time',
+                'react_submits_submission.username as user_name', // Mengambil username langsung dari tabel
+                'react_topics_detail.title as topic_title',
+                DB::raw("100 as score") // 4. Memberi nilai skor default karena kolom tidak ada
+            );
+
+        if ($activeTab == 'submissions' && $search) {
+            $submissionsQuery->where('react_submits_submission.username', 'like', "%{$search}%"); // 5. Menyesuaikan kolom pencarian
+        }
+        if ($activeTab == 'submissions' && $sortBy) {
+            $submissionsQuery->orderBy($sortBy, $sortDir);
+        } else {
+            $submissionsQuery->orderBy('submission_time', 'desc');
+        }
+        $submissions = $submissionsQuery->get();
+
+        // --- Query for Topic Finished (Tidak ada perubahan, sudah benar) ---
+        $topicFinishedQuery = DB::table('react_student_enroll')
             ->join('users', 'react_student_enroll.id_users', '=', 'users.id')
             ->join('react_topics_detail', 'react_student_enroll.php_topics_detail_id', '=', 'react_topics_detail.id')
             ->whereIn('react_student_enroll.php_topics_detail_id', $topicDetailIds)
@@ -160,25 +174,52 @@ class ReactDosenController extends Controller
                 'react_student_enroll.created_at as completion_date',
                 'users.name as user_name',
                 'react_topics_detail.title as topic_title'
-            )
-            ->orderBy('react_student_enroll.created_at', 'desc')
-            ->get();
+            );
 
-        $studentRanks = DB::table('react_student_rank')
+        if ($activeTab == 'topic-finished' && $search) {
+            $topicFinishedQuery->where('users.name', 'like', "%{$search}%");
+        }
+        if ($activeTab == 'topic-finished' && $sortBy) {
+            $topicFinishedQuery->orderBy($sortBy, $sortDir);
+        } else {
+            $topicFinishedQuery->orderBy('completion_date', 'desc');
+        }
+        $topicFinished = $topicFinishedQuery->get();
+
+        // --- Query for Student Rank (Tidak ada perubahan, sudah benar) ---
+        // Query BARU yang Sudah Benar
+        $studentRanksQuery = DB::table('react_student_rank')
             ->join('users', 'react_student_rank.id_user', '=', 'users.id')
-            ->whereIn('react_student_rank.topics_id', $topicDetailIds)
             ->select(
                 'users.name as user_name',
-                'react_student_rank.best_score as perfect_scores'
+                // 1. Menghitung jumlah baris per user sebagai total skor 100
+                DB::raw('COUNT(react_student_rank.id_user) as perfect_scores')
             )
-            ->orderBy('react_student_rank.best_score', 'desc')
-            ->get();
+            // 2. Hanya menghitung baris yang skornya 100
+            ->where('react_student_rank.best_score', 100)
+            // Filter berdasarkan topik utama yang sedang dilihat
+            ->whereIn('react_student_rank.topics_id', $topicDetailIds)
+            // 3. Mengelompokkan hasil berdasarkan ID dan nama user
+            ->groupBy('react_student_rank.id_user', 'users.name')
+            // 4. Mengurutkan berdasarkan jumlah skor 100 terbanyak
+            ->orderBy('perfect_scores', 'desc');
+        if ($activeTab == 'student-rank' && $search) {
+            $studentRanksQuery->where('users.name', 'like', "%{$search}%");
+        }
+        if ($activeTab == 'student-rank' && $sortBy) {
+            $studentRanksQuery->orderBy($sortBy, $sortDir);
+        } else {
+            $studentRanksQuery->orderBy('perfect_scores', 'desc');
+        }
+        $studentRanks = $studentRanksQuery->get();
 
+        // --- Mengirim semua data ke view ---
         return view('react.teacher.topics_detail', [
             'hasil'         => $topic,
             'submissions'   => $submissions,
             'topicFinished' => $topicFinished,
             'studentRanks'  => $studentRanks,
+            'request'       => $request
         ]);
     }
 

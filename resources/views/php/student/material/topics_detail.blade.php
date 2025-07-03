@@ -417,7 +417,7 @@
                             <small> *Masukkan hasil url tunneling</small>
                         </div>
                         <br/>
-                        
+
                         @if($flag > 1)
                          <div class="form-group row">
                                 <div class="col-6">
@@ -516,7 +516,7 @@
         var appUrl = document.getElementById('appUrl').value;
         var uji = "@php echo $titles @endphp";
     var apiUrl = `http://192.168.11.95:5000/php/uji/${uji}/${appUrl}`;
-        
+
         // formData
         let formData = new FormData();
         @if($flag == 2)
@@ -526,13 +526,13 @@ var editEmail1 = document.getElementById('editedEmail1').value || 'null';
 var editEmail2 = document.getElementById('editedEmail2').value || 'null';
         var apiUrl = `http://192.168.11.95:5000/php/uji/${uji}/${email1}/${email2}/${editEmail1}/${editEmail2}/${appUrl}`;
         @endif
-        
+
         @if($flag == 3)
  var email1 = document.getElementById('selectEmail1').value || 'null';
 var email2 = document.getElementById('selectEmail2').value || 'null';
         var apiUrl = `http://192.168.11.95:5000/php/uji/${uji}/${email1}/${email2}/${appUrl}`;
         @endif
-        
+
         fetch(apiUrl)
             .then(response => response.json())
             .then(data => {

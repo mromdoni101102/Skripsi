@@ -334,7 +334,7 @@
                                                         <i class="fas fa-key" style="margin-right: 5px;"></i>
                                                         <!-- Ikon kunci -->
                                                         {{-- @dd($topic) --}}
-                                                        Material Details
+                                                        Task Details
                                                     </a>
                                                 </div>
                                             </div>
@@ -511,12 +511,12 @@
                                 <img src={{ asset('./images/online_virtual_machine.png') }} alt="logo"
                                     width="400" height="300">
                             </div>
-                            <h5>React Material</h5>
+                            <h5>React Task</h5>
 
                             <input type="hidden" id="id" />
                             <input type="hidden" id="title" />
                             <input type="hidden" id="controller" />
-                            <span class="text-sm">Has {{ $topicsCount }} material to be discussed in detail</span>
+                            <span class="text-sm">Has {{ $topicsCount }} Task to be discussed in detail</span>
                         </div>
 
                         <div class="col-md-7">
@@ -563,7 +563,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" style="margin-left: 10px; width: 160px;"
                         onclick="materialDetailPage()">
-                        <i class="fas fa-key" style="margin-right: 5px;"></i>Enroll Material
+                        <i class="fas fa-key" style="margin-right: 5px;"></i>Enroll Task
                     </button>
                 </div>
             </div>

@@ -260,7 +260,7 @@
             <div class="card p-0" style="width: 305px; height: 375px; margin-left: 25px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
                 <img src="{{asset("./images/cards/React.jpg")}}" class="card-img-top" style="width: auto; height: 200px;">
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Learn React JS basic</h5>
+                    <h5 class="card-title">Learn React JS </h5>
                     <div class="row align-items-start">
                         <div class="col-1">
                             <img src="{{asset("./images/book.png ")}}" style="width: 13px; height: 16px;">
@@ -278,13 +278,13 @@
               <div class="card p-0" style="width: 305px; height: 375px; margin-left: 25px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
                 <img src="{{asset("./images/cards/React.jpg")}}" class="card-img-top" style="width: auto; height: 200px;">
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Learn React JS advanced</h5>
+                    <h5 class="card-title">Learn React JS interactive and responsive</h5>
                     <div class="row align-items-start">
                         <div class="col-1">
                             <img src="{{asset("./images/book.png ")}}" style="width: 13px; height: 16px;">
                         </div>
                         <div class="col">
-                            <p>4 learning topics</p>
+                            <p>4 task list</p>
                         </div>
                     </div>
                     <div style="margin-top: auto;">

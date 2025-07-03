@@ -1,5 +1,29 @@
 @extends('php/teacher/home')
 @section('content')
+    {{-- Helper function to generate sorting links --}}
+    @php
+        function getSortLink($column, $title, $request, $id, $tabName)
+        {
+            $sortDir = $request->input('sort_by') == $column && $request->input('sort_dir') == 'asc' ? 'desc' : 'asc';
+            $arrow = '';
+            if ($request->input('tab') == $tabName && $request->input('sort_by') == $column) {
+                $arrow = $request->input('sort_dir') == 'asc' ? ' &#9650;' : ' &#9660;';
+            }
+
+            $params = [
+                'id' => $id,
+                'tab' => $tabName,
+                'sort_by' => $column,
+                'sort_dir' => $sortDir,
+                'search' => $request->input('search'),
+            ];
+
+            // Menggunakan `url()` karena nama route tidak didefinisikan secara eksplisit
+            $url = url('react/teacher/topics/add/' . $id) . '?' . http_build_query($params);
+
+            return '<a href="' . $url . '">' . e($title) . $arrow . '</a>';
+        }
+    @endphp
     <div class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
@@ -213,27 +237,43 @@
                 <div class="card">
                     <div class="card-header p-2">
                         <ul class="nav nav-pills">
-                            <li class="nav-item"><a class="nav-link active" href="#submissions"
-                                    data-toggle="tab">Student Submissions</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#topic-finished" data-toggle="tab">Topic
-                                    Finished</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#student-rank" data-toggle="tab">Student
-                                    Rank</a></li>
+                            <li class="nav-item"><a
+                                    class="nav-link {{ $request->input('tab', 'submissions') == 'submissions' ? 'active' : '' }}"
+                                    href="#submissions" data-toggle="tab">Student Submissions</a></li>
+                            <li class="nav-item"><a
+                                    class="nav-link {{ $request->input('tab') == 'topic-finished' ? 'active' : '' }}"
+                                    href="#topic-finished" data-toggle="tab">Topic Finished</a></li>
+                            <li class="nav-item"><a
+                                    class="nav-link {{ $request->input('tab') == 'student-rank' ? 'active' : '' }}"
+                                    href="#student-rank" data-toggle="tab">Student Rank</a></li>
                         </ul>
                     </div>
                     <div class="card-body">
                         <div class="tab-content">
 
                             {{-- 1. Tab untuk Student Submissions --}}
-                            <div class="active tab-pane" id="submissions">
+                            <div class="tab-pane {{ $request->input('tab', 'submissions') == 'submissions' ? 'active' : '' }}"
+                                id="submissions">
                                 <h4>Student Submissions</h4>
+                                <form action="{{ url()->current() }}" method="GET" class="mb-3">
+                                    <input type="hidden" name="tab" value="submissions">
+                                    <div class="input-group">
+                                        <input type="text" name="search" class="form-control"
+                                            placeholder="Search by student name..."
+                                            value="{{ $request->input('tab') == 'submissions' ? $request->input('search') : '' }}">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary" type="submit"><i
+                                                    class="fas fa-search"></i></button>
+                                        </div>
+                                    </div>
+                                </form>
                                 <table class="table table-striped table-bordered" style="width:100%">
                                     <thead>
                                         <tr>
-                                            <th>Time</th>
-                                            <th>User Name</th>
-                                            <th>Submission Topic</th>
-                                            <th>Score</th>
+                                            <th>{!! getSortLink('submission_time', 'Time', $request, $hasil->id, 'submissions') !!}</th>
+                                            <th>{!! getSortLink('user_name', 'User Name', $request, $hasil->id, 'submissions') !!}</th>
+                                            <th>{!! getSortLink('topic_title', 'Submission Topic', $request, $hasil->id, 'submissions') !!}</th>
+                                            <th>{!! getSortLink('score', 'Score', $request, $hasil->id, 'submissions') !!}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -259,14 +299,27 @@
                             </div>
 
                             {{-- 2. Tab untuk Topic Finished --}}
-                            <div class="tab-pane" id="topic-finished">
+                            <div class="tab-pane {{ $request->input('tab') == 'topic-finished' ? 'active' : '' }}"
+                                id="topic-finished">
                                 <h4>Topic Finished Status</h4>
+                                <form action="{{ url()->current() }}" method="GET" class="mb-3">
+                                    <input type="hidden" name="tab" value="topic-finished">
+                                    <div class="input-group">
+                                        <input type="text" name="search" class="form-control"
+                                            placeholder="Search by student name..."
+                                            value="{{ $request->input('tab') == 'topic-finished' ? $request->input('search') : '' }}">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary" type="submit"><i
+                                                    class="fas fa-search"></i></button>
+                                        </div>
+                                    </div>
+                                </form>
                                 <table class="table table-striped table-bordered" style="width:100%">
                                     <thead>
                                         <tr>
-                                            <th>Tanggal Selesai</th>
-                                            <th>Nama User</th>
-                                            <th>Nama Topic</th>
+                                            <th>{!! getSortLink('completion_date', 'Tanggal Selesai', $request, $hasil->id, 'topic-finished') !!}</th>
+                                            <th>{!! getSortLink('user_name', 'Nama User', $request, $hasil->id, 'topic-finished') !!}</th>
+                                            <th>{!! getSortLink('topic_title', 'Nama Topic', $request, $hasil->id, 'topic-finished') !!}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -286,14 +339,27 @@
                             </div>
 
                             {{-- 3. Tab untuk Student Rank --}}
-                            <div class="tab-pane" id="student-rank">
+                            <div class="tab-pane {{ $request->input('tab') == 'student-rank' ? 'active' : '' }}"
+                                id="student-rank">
                                 <h4>Student Rank (Based on Perfect Scores)</h4>
+                                <form action="{{ url()->current() }}" method="GET" class="mb-3">
+                                    <input type="hidden" name="tab" value="student-rank">
+                                    <div class="input-group">
+                                        <input type="text" name="search" class="form-control"
+                                            placeholder="Search by student name..."
+                                            value="{{ $request->input('tab') == 'student-rank' ? $request->input('search') : '' }}">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary" type="submit"><i
+                                                    class="fas fa-search"></i></button>
+                                        </div>
+                                    </div>
+                                </form>
                                 <table class="table table-striped table-bordered" style="width:100%">
                                     <thead>
                                         <tr>
                                             <th style="width: 10%;">Rank</th>
-                                            <th>Nama User</th>
-                                            <th style="width: 25%;">Jumlah Nilai 100</th>
+                                            <th>{!! getSortLink('user_name', 'Nama User', $request, $hasil->id, 'student-rank') !!}</th>
+                                            <th style="width: 25%;">{!! getSortLink('perfect_scores', 'Jumlah Nilai 100', $request, $hasil->id, 'student-rank') !!}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -315,6 +381,7 @@
                     </div>
                 </div>
             </div>
+        </div>
         </div>
         </div>
 
@@ -371,8 +438,5 @@
 
                 </div>
             </div>
-
-
-
     </section>
 @endsection

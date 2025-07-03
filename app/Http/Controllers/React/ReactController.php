@@ -91,7 +91,7 @@ class ReactController extends Controller
 
         $actual = "";
         $topics = ReactTopic::all();
-        $topics_detail = '';
+        $topics_detail = [];
         if (isset($_GET['type'])) {
             $type = $_GET['type'];
             if ($type == 'basic') {
