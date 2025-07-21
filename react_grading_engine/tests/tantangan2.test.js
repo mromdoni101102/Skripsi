@@ -5,75 +5,82 @@ require('@testing-library/jest-dom');
 const React = require('react');
 const { render, screen } = require('@testing-library/react');
 
-// ======================================================================
-// TIDAK ADA MOCKING DEPENDENSI KARENA KODE INI MANDIRI
-// ======================================================================
+// ========================================================
+// VALIDASI IMPORT DAN EKSPOR
+// ========================================================
+let Tantangan2;
+let importError = null;
 
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: SUBMISSION_PATH tidak disetel.');
+    return;
+  }
 
-// ======================================================================
-// MENGAMBIL KODE MAHASISWA
-// ======================================================================
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-// Mengambil komponen utama dari file jawaban mahasiswa.
-const Tantangan2 = require(process.env.SUBMISSION_PATH).default;
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    Tantangan2 = submission.default || submission.Tantangan2 || submission;
 
+    if (typeof Tantangan2 !== 'function') {
+      importError = new Error('❌ Komponen Tantangan2 tidak diekspor sebagai fungsi.');
+    }
+  } catch (err) {
+    importError = new Error(`❌ Gagal memuat file:\n${err.message}`);
+  }
+});
 
-// ======================================================================
-// CHECKLIST PENILAIAN FUNGSIONAL (VERSI LENGKAP ANDA)
-// ======================================================================
-describe('Praktikum: Komponen PackingList (Tantangan 2)', () => {
+// ========================================================
+// PENGUJIAN STRUKTUR & FUNGSI — FUNGSIONAL
+// ========================================================
+describe('Praktikum: Komponen PackingList (Tantangan2)', () => {
+  test('Validasi Impor: Komponen harus dapat diimpor dan merupakan fungsi', () => {
+    if (importError) throw importError;
+    expect(typeof Tantangan2).toBe('function');
+  });
 
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Pengujian Fungsional', () => {
     beforeEach(() => {
-        // Render komponen sebelum setiap tes agar tidak perlu diulang
-        render(<Tantangan2 />);
+      render(<Tantangan2 />);
     });
 
-    test('Kriteria 1 [W=5]: Harus menampilkan judul utama "Sally Ride\'s Packing List"', () => {
-        const heading = screen.getByRole('heading', { level: 1, name: /Sally Ride's Packing List/i });
-        expect(heading).toBeInTheDocument();
+    // Kriteria 1 [W=10]
+    test('Kriteria 1 [W=10]: Komponen dapat dirender tanpa error', () => {
+      expect(() => render(<Tantangan2 />)).not.toThrow();
     });
 
-    test('Kriteria 2 [W=15]: Harus me-render struktur dasar (section > ul > 3 li)', () => {
-        const list = screen.getByRole('list');
-        expect(list).toBeInTheDocument();
-        const section = list.closest('section');
-        expect(section).toBeInTheDocument();
-        const listItems = screen.getAllByRole('listitem');
-        expect(listItems).toHaveLength(3);
+    // Kriteria 2 [W=20]
+    test('Kriteria 2 [W=20]: Semua elemen item dirender dalam elemen <li>', () => {
+      const listItems = screen.getAllByRole('listitem');
+      listItems.forEach(item => {
+        expect(item).toBeInTheDocument();
+        expect(item.tagName.toLowerCase()).toBe('li');
+        expect(item.textContent).not.toBe('');
+      });
     });
 
-    test('Kriteria 3 [W=10]: Semua item list harus memiliki class "item"', () => {
-        const listItems = screen.getAllByRole('listitem');
-        listItems.forEach(item => {
-            expect(item).toHaveClass('item');
-        });
+    // Kriteria 3 [W=20]
+    test('Kriteria 3 [W=20]: Item dengan importance > 0 memiliki elemen <i> yang menampilkan tingkat importance', () => {
+      const listItems = screen.getAllByRole('listitem');
+      const itemsWithI = listItems.filter(li =>
+        li.querySelector('i') && /Importance:\s*\d+/.test(li.textContent)
+      );
+      expect(itemsWithI.length).toBe(2); // hanya yang importance > 0
     });
 
-    // Bobot tinggi karena menguji satu cabang dari logika kondisional (&&).
-    test('Kriteria 4 [W=20]: Item dengan importance > 0 harus menampilkan teks "(Importance: ...)"', () => {
-        const spaceSuit = screen.getByText(/Space suit/i);
-        expect(spaceSuit.textContent).toContain('(Importance: 9)');
-        const photo = screen.getByText(/Photo of Tam/i);
-        expect(photo.textContent).toContain('(Importance: 6)');
+    // Kriteria 4 [W=30]
+    test('Kriteria 4 [W=30]: Item dengan importance = 0 tidak memiliki elemen <i>', () => {
+      const listItems = screen.getAllByRole('listitem');
+      const itemsWithoutI = listItems.filter(li =>
+        !li.querySelector('i')
+      );
+      expect(itemsWithoutI.length).toBe(1); // hanya satu dengan importance = 0
     });
 
-    // Bobot tinggi karena menguji cabang lain dari logika kondisional.
-    test('Kriteria 5 [W=20]: Item dengan importance = 0 TIDAK boleh menampilkan teks "(Importance: ...)"', () => {
-        const helmet = screen.getByText(/Helmet with a golden leaf/i);
-        expect(helmet.textContent).not.toContain('Importance');
+    // Kriteria 5 [W=5]
+    test('Kriteria 5 [W=5]: Komponen Tantangan2 diekspor dengan benar', () => {
+      expect(Tantangan2).toBeDefined();
     });
-
-    // Bobot tertinggi karena menguji kombinasi logika kondisional dan elemen HTML spesifik.
-    test('Kriteria 6 [W=25]: Teks importance harus berada di dalam tag <i> (italic)', () => {
-        const italicElements = document.querySelectorAll('i');
-        expect(italicElements).toHaveLength(2);
-        expect(italicElements[0]).toHaveTextContent('(Importance: 9)');
-        expect(italicElements[1]).toHaveTextContent('(Importance: 6)');
-    });
-
-    test('Kriteria 7 [W=5]: Komponen harus diexport sebagai default dengan benar', () => {
-        expect(Tantangan2).toBeDefined();
-    });
+  });
 });

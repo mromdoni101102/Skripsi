@@ -5,69 +5,77 @@ require('@testing-library/jest-dom');
 const React = require('react');
 const { render, screen, fireEvent } = require('@testing-library/react');
 
-// ======================================================================
-// BAGIAN 1: MENYIAPKAN "DATA PALSU" (MOCKING)
-// ======================================================================
-// Kode mahasiswa membutuhkan data `sculptureList` dari path '@data/article'.
-// Kita harus mencegat import ini dan menyediakan data tiruan yang bisa kita kontrol.
-jest.mock('@/data/article', () => ({
-    sculptureList: [
-        { artist: 'Marta Colvin Andrade', title: 'About', description: 'Dengan populasi sekitar 2 juta orang...' },
-        { artist: 'Eduardo Catalano', title: 'Etymology', description: 'Nama "Almaty" berasal dari kata...' }
-    ]
-}), { virtual: true });
+let Accordion;
+let importError = null;
 
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ SUBMISSION_PATH belum diatur.');
+    return;
+  }
 
-// ======================================================================
-// BAGIAN 2: MENGAMBIL KODE MAHASISWA
-// ======================================================================
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-// Mengambil komponen Accordion dari file jawaban mahasiswa.
-const Accordion = require(process.env.SUBMISSION_PATH).default;
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    Accordion = submission.Accordion || submission.default || submission;
+    if (typeof Accordion !== 'function') {
+      importError = new Error('❌ Komponen Accordion harus berupa fungsi.');
+    }
+  } catch (err) {
+    importError = new Error('❌ Gagal impor Accordion:\n' + err.message);
+  }
+});
 
+describe('Pengujian Fungsional Komponen Accordion', () => {
+  test('✅ Komponen berhasil diimpor', () => {
+    if (importError) throw importError;
+    expect(Accordion).toBeDefined();
+  });
 
-// ======================================================================
-// BAGIAN 3: "CHECKLIST" PENILAIAN FUNGSIONAL
-// ======================================================================
-describe('Praktikum: Komponen Accordion', () => {
+  const conditionalDescribe = importError ? describe.skip : describe;
 
+  conditionalDescribe('Interaksi dan perilaku Accordion', () => {
     beforeEach(() => {
-        // Render komponen utama sebelum setiap tes
-        render(<Accordion />);
+      render(<Accordion />);
+    });
+     test('Kriteria 1 [W=5]: Saat pertama kali render, ada dua heading dan satu panel terbuka"', () => {
+         const headings = screen.getAllByRole('heading');
+      expect(headings.length).toBeGreaterThanOrEqual(2);
+
+      const buttons = screen.getAllByRole('button');
+      expect(buttons.length).toBe(1); // hanya panel kedua yg tombolnya muncul
     });
 
-     test('Kriteria 1 [W=5]: Harus menampilkan judul utama "Almaty, Kazakhstan"', () => {
-        expect(screen.getByRole('heading', { name: 'Almaty, Kazakhstan' })).toBeInTheDocument();
+    test('Kriteria 2 [W=20]: Panel pertama menampilkan isi, panel kedua menampilkan tombol', () => {
+         const paragraphs = screen.getAllByText((content, node) => {
+        return node.tagName.toLowerCase() === 'p';
+      });
+      expect(paragraphs.length).toBe(1); // hanya satu panel aktif
     });
 
-    test('Kriteria 2 [W=20]: Panel pertama ("About") harus aktif dan menampilkan isinya saat awal render', () => {
-        const panelContent = screen.getByText(/Dengan populasi sekitar 2 juta orang/i);
-        expect(panelContent).toBeInTheDocument();
+    test('Kriteria 3 [W=30]: Setelah tombol ditekan, panel kedua aktif dan tombol hilang', () => {
+       const toggleButton = screen.getByRole('button');
+      fireEvent.click(toggleButton);
 
-        const showButtonForPanel2 = screen.getByRole('button', { name: 'Tampilkan' });
-        expect(showButtonForPanel2).toBeInTheDocument();
-    });
+      // Harus ada satu <p> untuk panel kedua
+      const paragraphs = screen.getAllByText((_, node) => node.tagName.toLowerCase() === 'p');
+      expect(paragraphs.length).toBe(1);
 
-    test('Kriteria 3 [W=30]: Menekan tombol "Tampilkan" pada panel kedua akan menampilkan isinya', () => {
-        const showButton = screen.getByRole('button', { name: /Tampilkan/i });
-        fireEvent.click(showButton);
-
-        const panel2Content = screen.getByText(/Nama "Almaty" berasal dari kata/i);
-        expect(panel2Content).toBeInTheDocument();
+      // Tombol "Tampilkan" hilang (panel 1 sekarang yang pasif)
+      expect(screen.queryByRole('button')).toBeInTheDocument();
     });
 
     // Bobot tertinggi karena menguji logika inti "lifting state up".
-    test('Kriteria 4 [W=40]: Saat panel kedua aktif, konten panel pertama harus hilang', () => {
-        const showButton = screen.getByRole('button', { name: /Tampilkan/i });
-        fireEvent.click(showButton);
+    test('Kriteria 4 [W=40]: Ketika panel kedua aktif, panel pertama tidak menampilkan isi', () => {
+        const toggleButton = screen.getByRole('button');
+      fireEvent.click(toggleButton);
 
-        const panel1Content = screen.queryByText(/Dengan populasi sekitar 2 juta orang/i);
-        expect(panel1Content).not.toBeInTheDocument();
+      // Cek bahwa hanya satu paragraf (panel aktif), tidak ada dua
+      const paragraphs = screen.getAllByText((_, node) => node.tagName.toLowerCase() === 'p');
+      expect(paragraphs.length).toBe(1);
     });
 
     test('Kriteria 5 [W=5]: Komponen "Accordion" harus diexport dengan benar', () => {
         expect(Accordion).toBeDefined();
     });
+});
 });

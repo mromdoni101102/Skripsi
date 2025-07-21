@@ -3,39 +3,90 @@
  */
 require('@testing-library/jest-dom');
 const React = require('react');
-const { render, screen, waitFor } = require('@testing-library/react');
+const { render, screen } = require('@testing-library/react');
 const userEvent = require('@testing-library/user-event').default;
 
-const Form = require(process.env.SUBMISSION_PATH).default;
+let Form;
+let importError = null;
+
+// Validasi Impor Awal
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: SUBMISSION_PATH belum diatur.');
+    return;
+  }
+
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    Form = submission.Form || submission.default || submission;
+
+    if (typeof Form !== 'function') {
+      importError = new Error('❌ Komponen Form tidak diekspor sebagai fungsi.');
+    }
+  } catch (err) {
+    importError = new Error('❌ Gagal mengimpor komponen Form:\n' + err.message);
+  }
+});
 
 describe('Praktikum: Komponen Form Interaktif', () => {
-    const user = userEvent.setup();
+  test('Validasi Impor Komponen', () => {
+    if (importError) throw importError;
+    expect(Form).toBeDefined();
+  });
 
-     test('Kriteria 1 [W=10]: Harus menampilkan semua elemen form saat awal render', () => {
-        render(<Form />);
-        expect(screen.getByRole('heading', { name: /Tebak Nama Hewan/i })).toBeInTheDocument();
-        expect(screen.getByRole('textbox')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Submit/i })).toBeInTheDocument();
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Pengujian Fungsionalitas Form', () => {
+    let user;
+
+    beforeEach(() => {
+      user = userEvent.setup();
+      render(<Form />);
     });
 
-    test('Kriteria 2 [W=20]: Tombol "Submit" harus nonaktif jika textarea kosong', () => {
-        render(<Form />);
-        expect(screen.getByRole('button', { name: /Submit/i })).toBeDisabled();
+    test('Kriteria 1 [W=10]: Harus menampilkan elemen-elemen dasar form', () => {
+      const heading = screen.queryByRole('heading');
+      const textbox = screen.queryByRole('textbox');
+      const button = screen.queryByRole('button');
+
+      if (!heading || !textbox || !button) {
+        throw new Error('❌ Form tidak memuat semua elemen penting: heading, textbox, atau button.');
+      }
+
+      expect(heading).toBeInTheDocument();
+      expect(textbox).toBeInTheDocument();
+      expect(button).toBeInTheDocument();
     });
 
-    // Bobot tertinggi karena menguji logika async, state, dan penanganan error.
-    test('Kriteria 3 [W=35]: Menampilkan pesan error jika jawaban salah', async () => {
-        render(<Form />);
-        await user.type(screen.getByRole('textbox'), 'kucing');
-        await user.click(screen.getByRole('button', { name: /Submit/i }));
-        expect(await screen.findByText(/Tebakan yang bagus tetapi jawaban salah/i)).toBeInTheDocument();
+    test('Kriteria 2 [W=20]: Tombol submit harus nonaktif saat input kosong', () => {
+      const button = screen.getByRole('button');
+      expect(button).toBeDisabled();
     });
 
-    // Bobot tertinggi karena menguji logika async, state, dan penanganan kondisi sukses.
+    test('Kriteria 3 [W=35]: Menampilkan error jika jawaban salah', async () => {
+      const input = screen.getByRole('textbox');
+      const button = screen.getByRole('button');
+
+      await user.type(input, 'kucing');
+      await user.click(button);
+
+      const errorMessage = await screen.findByText(/jawaban salah/i);
+      expect(errorMessage).toBeInTheDocument();
+    });
+
     test('Kriteria 4 [W=35]: Menampilkan pesan sukses jika jawaban benar', async () => {
-        render(<Form />);
-        await user.type(screen.getByRole('textbox'), 'tikus');
-        await user.click(screen.getByRole('button', { name: /Submit/i }));
-        expect(await screen.findByRole('heading', { name: /Yay... Jawaban Benar!/i })).toBeInTheDocument();
+      const input = screen.getByRole('textbox');
+      const button = screen.getByRole('button');
+
+      await user.type(input, 'tikus');
+      await user.click(button);
+
+      try {
+        const successMessage = await screen.findByText(/jawaban benar/i);
+        expect(successMessage).toBeInTheDocument();
+      } catch (e) {
+        throw new Error('❌ Pesan "jawaban benar" tidak ditemukan. Pastikan Anda menampilkannya setelah jawaban benar.');
+      }
     });
+  });
 });

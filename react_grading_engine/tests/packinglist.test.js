@@ -5,75 +5,101 @@ require('@testing-library/jest-dom');
 const React = require('react');
 const { render, screen } = require('@testing-library/react');
 
-// ======================================================================
-// TIDAK ADA MOCKING DEPENDENSI KARENA KODE INI MANDIRI
-// ======================================================================
+// ========================================================
+// SETUP & IMPORT
+// ========================================================
+let PackingList;
+let importError = null;
 
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: SUBMISSION_PATH tidak disetel. Pastikan konfigurasi environment Anda benar.');
+    return;
+  }
 
-// ======================================================================
-// MENGAMBIL KODE MAHASISWA
-// ======================================================================
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-// Mengambil komponen utama dari file jawaban mahasiswa
-const PackingList = require(process.env.SUBMISSION_PATH).default;
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    PackingList = submission.default || submission.PackingList || submission;
 
+    if (typeof PackingList !== 'function') {
+      importError = new Error('❌ Gagal pada Kriteria 6 [W=5]: Komponen "PackingList" tidak diekspor sebagai fungsi.');
+    }
+  } catch (err) {
+    importError = new Error(`❌ Gagal memuat file mahasiswa:\n${err.message}`);
+  }
+});
 
-// ======================================================================
-// CHECKLIST PENILAIAN FUNGSIONAL (VERSI LENGKAP ANDA)
-// ======================================================================
-describe('Praktikum: Komponen PackingList', () => {
+// ========================================================
+// PENGUJIAN FUNGSI UTAMA
+// ========================================================
+describe('Praktikum: Komponen PackingList (Fungsional)', () => {
+  test('Kriteria 6 [W=5]: Komponen PackingList berhasil diimpor dan merupakan fungsi', () => {
+    if (importError) throw importError;
+    expect(typeof PackingList).toBe('function');
+  });
 
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Pengujian Fungsional Detail', () => {
     beforeEach(() => {
-        // Render komponen sebelum setiap tes agar tidak perlu diulang
-        render(<PackingList />);
+      render(<PackingList />);
     });
 
-       test('Kriteria 1 [W=5]: Harus menampilkan judul utama dengan benar', () => {
-        const heading = screen.getByRole('heading', { level: 1, name: /Sally Ride's Packing List/i });
-        expect(heading).toBeInTheDocument();
+    // Kriteria 1 [W=5]
+    test('Kriteria 1 [W=5]: Harus menampilkan heading utama <h1>', () => {
+      const heading = screen.queryByRole('heading', { level: 1 });
+      expect(heading).toBeInTheDocument();
     });
 
-    test('Kriteria 2 [W=20]: Harus me-render struktur dasar (section > ul > li)', () => {
-        const list = screen.getByRole('list');
-        expect(list).toBeInTheDocument();
-        const section = list.closest('section');
-        expect(section).toBeInTheDocument();
-        const listItems = screen.getAllByRole('listitem');
-        expect(listItems).toHaveLength(3);
+    // Kriteria 2 [W=20]
+    test('Kriteria 2 [W=20]: Memiliki struktur section > ul > li (dengan minimal 3 item)', () => {
+      const list = screen.getByRole('list');
+      const section = list.closest('section');
+      expect(section).toBeInTheDocument();
+
+      const items = screen.getAllByRole('listitem');
+      expect(items.length).toBeGreaterThanOrEqual(3);
     });
 
-    test('Kriteria 3 [W=10]: Semua item list harus memiliki class "item"', () => {
-        const listItems = screen.getAllByRole('listitem');
-        listItems.forEach(item => {
-            expect(item).toHaveClass('item');
-        });
+    // Kriteria 3 [W=10]
+    test('Kriteria 3 [W=10]: Setiap item list memiliki class "item"', () => {
+      const items = screen.getAllByRole('listitem');
+      items.forEach(item => {
+        expect(item).toHaveClass('item');
+      });
     });
 
-    // Bobot tertinggi karena menguji logika kondisional yang kompleks.
-    test('Kriteria 4 [W=30]: Item yang sudah dikemas (isPacked=true) harus dirender dengan benar', () => {
-        const spaceSuit = screen.getByText(/Space suit/i);
-        const helmet = screen.getByText(/Helmet with a golden leaf/i);
+  // Kriteria 4 [W=30]
+    test('Kriteria 4 [W=30]: Item yang dikemas (isPacked=true) dirender dalam komponen ' + '&lt;del&gt;' + ' dan mengandung indikator status apapun seperti (✅, true, benar, sudah dikemas, ✓)', () => {
+    const deletedItems = screen.getAllByRole('listitem').filter((li) => {
+        const del = li.querySelector('del');
+        if (!del) return false;
 
-        expect(spaceSuit).toHaveTextContent('✅');
-        expect(helmet).toHaveTextContent('✅');
-
-        expect(spaceSuit.closest('del')).toBeInTheDocument();
-        expect(helmet.closest('del')).toBeInTheDocument();
+        // Cek isi del mengandung simbol atau teks yang menunjukkan "dikemas"
+        const text = del.textContent.toLowerCase();
+        return text.includes('✅') || text.includes('true') || text.includes('benar') || text.includes('sudah dikemas') || text.includes('✓');
     });
 
-    // Bobot tertinggi karena menguji logika kondisional (kasus sebaliknya).
-    test('Kriteria 5 [W=30]: Item yang belum dikemas (isPacked=false) harus dirender dengan benar', () => {
-        const photo = screen.getByText(/Photo of Tam/i);
-
-        expect(photo).not.toHaveTextContent('✅');
-        expect(photo).not.toHaveTextContent('❌');
-
-        expect(photo.closest('del')).toBeNull();
+    expect(deletedItems.length).toBeGreaterThanOrEqual(1);
     });
 
-    test('Kriteria 6 [W=5]: Komponen "PackingList" dan "Item" harus diexport dengan benar', () => {
-        expect(PackingList).toBeDefined();
+    // Kriteria 5 [W=30]
+    test('Kriteria 5 [W=30]: Item yang tidak dikemas (isPacked=false) tidak ada di dalam komponen ' + '&lt;del&gt;' + ' dan tidak mengandung indikator status apapun seperti (✅, true, benar, sudah dikemas, ✓)', () => {
+    const plainItems = screen.getAllByRole('listitem').filter((li) => {
+        const del = li.querySelector('del');
+        const text = li.textContent.toLowerCase();
+
+        const hasCheckSymbol = text.includes('✅');
+        const hasTrueText = text.includes('true');
+        const hasBenar = text.includes('benar');
+        const hasDikemas = text.includes('sudah dikemas');
+        const hasCheckMark = text.includes('✓');
+
+        return !del && !(hasCheckSymbol || hasTrueText || hasBenar || hasDikemas || hasCheckMark);
     });
+
+    expect(plainItems.length).toBeGreaterThanOrEqual(1);
+    });
+
+  });
 });

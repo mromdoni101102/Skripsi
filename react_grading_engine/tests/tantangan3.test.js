@@ -3,72 +3,99 @@
  */
 require('@testing-library/jest-dom');
 const React = require('react');
-const { render, screen } = require('@testing-library/react');
+const { render, screen, within } = require('@testing-library/react');
 
-// ======================================================================
-// TIDAK ADA MOCKING DEPENDENSI KARENA KODE INI MANDIRI
-// ======================================================================
+// ========================================================
+// VALIDASI IMPORT DAN EKSPOR
+// ========================================================
+let Tantangan3;
+let importError = null;
 
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: SUBMISSION_PATH tidak disetel.');
+    return;
+  }
 
-// ======================================================================
-// BAGIAN 2: MENGAMBIL KODE MAHASISWA
-// ======================================================================
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-// Mengambil komponen utama dari file jawaban mahasiswa.
-const Tantangan3 = require(process.env.SUBMISSION_PATH).default;
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    Tantangan3 = submission.default || submission.Tantangan3 || submission;
 
+    if (typeof Tantangan3 !== 'function') {
+      importError = new Error('❌ Komponen Tantangan3 tidak diekspor sebagai fungsi.');
+    }
+  } catch (err) {
+    importError = new Error(`❌ Gagal memuat file:\n${err.message}`);
+  }
+});
 
-// ======================================================================
-// BAGIAN 3: "CHECKLIST" PENILAIAN FUNGSIONAL
-// ======================================================================
-describe('Praktikum: Komponen Drink (Tantangan 3)', () => {
+// ========================================================
+// PENGUJIAN STRUKTUR & FUNGSI — FUNGSIONAL
+// ========================================================
+describe('Praktikum: Komponen Drink (Tantangan3)', () => {
+  test('Validasi Impor: Komponen harus dapat diimpor dan merupakan fungsi', () => {
+    if (importError) throw importError;
+    expect(typeof Tantangan3).toBe('function');
+  });
 
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Pengujian Fungsional', () => {
+    let container;
     beforeEach(() => {
-        render(<Tantangan3 />);
+    const renderResult = render(<Tantangan3 />);
+    container = renderResult.container;
     });
 
-     test('Kriteria 1 [W=15]: Harus me-render DUA komponen Drink, untuk "tea" dan "coffee"', () => {
-        const teaHeading = screen.getByRole('heading', { name: /tea/i });
-        const coffeeHeading = screen.getByRole('heading', { name: /coffee/i });
 
-        expect(teaHeading).toBeInTheDocument();
-        expect(coffeeHeading).toBeInTheDocument();
+    // Kriteria 1 [W=15]
+    test('Kriteria 1 [W=15]: Harus merender tepat dua elemen <section>', () => {
+    const sections = container.querySelectorAll('section');
+    expect(sections.length).toBe(2);
     });
 
-    test('Kriteria 2 [W=25]: Data untuk "tea" harus ditampilkan dengan benar', () => {
-        const teaPart = screen.getByText('leaf');
-        expect(teaPart).toBeInTheDocument();
-        expect(teaPart.tagName.toLowerCase()).toBe('dd');
+    // Kriteria 2 [W=25]
+    test('Kriteria 2 [W=25]: Tiap section mengandung heading dan minimal 3 <dt>/<dd> berpasangan', () => {
+     const sections = container.querySelectorAll('section');
 
-        const teaCaffeine = screen.getByText(/15–70 mg\/cup/i);
-        expect(teaCaffeine).toBeInTheDocument();
+      sections.forEach((section) => {
+        const heading = within(section).getByRole('heading');
+        expect(heading).toBeInTheDocument();
+
+        const dl = section.querySelector('dl');
+        expect(dl).toBeInTheDocument();
+
+        const dtItems = dl.querySelectorAll('dt');
+        const ddItems = dl.querySelectorAll('dd');
+        expect(dtItems.length).toBeGreaterThanOrEqual(3);
+        expect(ddItems.length).toBeGreaterThanOrEqual(3);
+      });
     });
 
-    test('Kriteria 3 [W=25]: Data untuk "coffee" harus ditampilkan dengan benar', () => {
-        const coffeePart = screen.getByText('bean');
-        expect(coffeePart).toBeInTheDocument();
-        expect(coffeePart.tagName.toLowerCase()).toBe('dd');
+    // Kriteria 3 [W=30]
+    test('Kriteria 3 [W=30]: Struktur semantik harus section > heading + dl > dt/dd', () => {
+      const sections = container.querySelectorAll('section');
 
-        const coffeeCaffeine = screen.getByText(/80–185 mg\/cup/i);
-        expect(coffeeCaffeine).toBeInTheDocument();
+
+      sections.forEach(section => {
+        expect(section.tagName.toLowerCase()).toBe('section');
+
+        const heading = section.querySelector('h1, h2, h3, h4, h5, h6');
+        expect(heading).toBeInTheDocument();
+
+        const dl = section.querySelector('dl');
+        expect(dl).toBeInTheDocument();
+
+        const dtItems = dl.querySelectorAll('dt');
+        const ddItems = dl.querySelectorAll('dd');
+        expect(dtItems.length).toBeGreaterThanOrEqual(3);
+        expect(ddItems.length).toBeGreaterThanOrEqual(3);
+      });
     });
 
-    // Bobot tertinggi karena menguji struktur HTML semantik yang spesifik.
-    test('Kriteria 4 [W=30]: Struktur HTML untuk setiap minuman harus benar (section > h1 + dl)', () => {
-        const sections = screen.getAllByRole('generic').filter(el => el.tagName.toLowerCase() === 'section');
-        expect(sections).toHaveLength(2);
-
-        sections.forEach(section => {
-            const heading = section.querySelector('h1');
-            const definitionList = section.querySelector('dl');
-            expect(heading).toBeInTheDocument();
-            expect(definitionList).toBeInTheDocument();
-        });
+    // Kriteria 4 [W=5]
+    test('Kriteria 4 [W=5]: Komponen Tantangan3 diekspor dengan benar', () => {
+      expect(Tantangan3).toBeDefined();
     });
-
-    test('Kriteria 5 [W=5]: Komponen "Tantangan3" harus diexport dengan benar', () => {
-        expect(Tantangan3).toBeDefined();
-    });
+  });
 });

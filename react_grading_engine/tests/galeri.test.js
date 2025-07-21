@@ -5,80 +5,113 @@ require('@testing-library/jest-dom');
 const React = require('react');
 const { render, screen, fireEvent } = require('@testing-library/react');
 
-// ======================================================================
-// BAGIAN 1: MENYIAPKAN "DATA PALSU" (MOCKING)
-// ======================================================================
-// Kode mahasiswa membutuhkan data `sculptureList` dari path '@data/article'.
-// Kita harus mencegat import ini dan menyediakan data tiruan.
 jest.mock('@/data/article', () => ({
-    sculptureList: [
-        { name: 'Homenaje a la Neurocirugía', artist: 'Marta Colvin Andrade', description: 'Deskripsi pertama...', url: 'https://i.imgur.com/Mx7dA2Y.jpg', alt: 'Patung Perunggu A' },
-        { name: 'Floralis Genérica', artist: 'Eduardo Catalano', description: 'Deskripsi kedua...', url: 'https://i.imgur.com/ZF6s192.jpg', alt: 'Patung Bunga Metalik' },
-        { name: 'Eternal Presence', artist: 'John Woodrow Wilson', description: 'Deskripsi ketiga...', url: 'https://i.imgur.com/aTtVpES.jpg', alt: 'Patung Kepala Manusia' }
-    ]
+  sculptureList: [
+    {
+      name: 'Patung A',
+      artist: 'Seniman A',
+      description: 'Deskripsi A',
+      url: 'https://example.com/a.jpg',
+      alt: 'Gambar A',
+    },
+    {
+      name: 'Patung B',
+      artist: 'Seniman B',
+      description: 'Deskripsi B',
+      url: 'https://example.com/b.jpg',
+      alt: 'Gambar B',
+    },
+    {
+      name: 'Patung C',
+      artist: 'Seniman C',
+      description: 'Deskripsi C',
+      url: 'https://example.com/c.jpg',
+      alt: 'Gambar C',
+    },
+  ],
 }), { virtual: true });
 
+let Galeri;
+let importError = null;
 
-// ======================================================================
-// BAGIAN 2: MENGAMBIL KODE MAHASISWA
-// ======================================================================
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-// Mengambil komponen Galeri dari file jawaban mahasiswa.
-const submission = require(process.env.SUBMISSION_PATH);
-const Galeri = submission.Galeri || submission.default || submission;
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: SUBMISSION_PATH belum diatur.');
+    return;
+  }
 
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    Galeri = submission.Galeri || submission.default || submission;
 
-// ======================================================================
-// BAGIAN 3: "CHECKLIST" PENILAIAN FUNGSIONAL
-// ======================================================================
-describe('Praktikum: Komponen Galeri Interaktif', () => {
+    if (typeof Galeri !== 'function') {
+      importError = new Error('❌ Komponen Galeri tidak diekspor sebagai fungsi.');
+    }
+  } catch (err) {
+    importError = new Error('❌ Gagal mengimpor komponen Galeri:\n' + err.message);
+  }
+});
+
+describe('Praktikum: Galeri Interaktif', () => {
+  test('Validasi Impor', () => {
+    if (importError) throw importError;
+    expect(Galeri).toBeDefined();
+  });
+
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Pengujian Fungsionalitas', () => {
+    let prevBtn, nextBtn;
 
     beforeEach(() => {
-        render(<Galeri />);
+      render(<Galeri />);
+      const buttons = screen.getAllByRole('button');
+      if (buttons.length < 2) {
+        throw new Error('❌ Harus ada minimal 2 tombol navigasi.');
+      }
+
+      [prevBtn, nextBtn] = buttons;
     });
 
-   test('Kriteria 1 [W=15]: Harus menampilkan data patung pertama saat awal render', () => {
-        expect(screen.getByRole('heading', { name: /Homenaje a la Neurocirugía/i })).toBeInTheDocument();
-        expect(screen.getByText(/oleh Marta Colvin Andrade/i)).toBeInTheDocument();
-        expect(screen.getByAltText('Patung Perunggu A')).toBeInTheDocument();
-        expect(screen.getByText('(1 dari 3)')).toBeInTheDocument();
+    test('Kriteria 1 [W=15]: Saat awal render, item pertama tampil dan tombol prev disabled', () => {
+      const headings = screen.getAllByRole('heading');
+      const image = screen.queryByRole('img');
+
+      expect(headings.length).toBeGreaterThanOrEqual(2);
+      expect(image).toBeInTheDocument();
+      expect(prevBtn).toBeDisabled();
     });
 
-    test('Kriteria 2 [W=15]: Tombol "Artikel Sebelumnya" harus nonaktif (disabled) saat awal render', () => {
-        const prevButton = screen.getByRole('button', { name: /Artikel Sebelumnya/i });
-        expect(prevButton).toBeDisabled();
+    test('Kriteria 2 [W=15]: Klik tombol next, tampil item berikutnya', () => {
+      const firstHeading = screen.getByRole('heading', { level: 2 });
+      const initialText = firstHeading.textContent;
+
+      fireEvent.click(nextBtn);
+
+      const updatedHeading = screen.getByRole('heading', { level: 2 });
+      expect(updatedHeading.textContent).not.toBe(initialText);
     });
 
-    // Bobot tinggi karena menguji logika utama event handler dan state update.
-    test('Kriteria 3 [W=25]: Menekan tombol "Artikel Selanjutnya" akan menampilkan data patung kedua', () => {
-        const nextButton = screen.getByRole('button', { name: /Artikel Selanjutnya/i });
-        fireEvent.click(nextButton);
-
-        expect(screen.getByRole('heading', { name: /Floralis Genérica/i })).toBeInTheDocument();
-        expect(screen.getByAltText('Patung Bunga Metalik')).toBeInTheDocument();
-        expect(screen.getByText('(2 dari 3)')).toBeInTheDocument();
+    test('Kriteria 3 [W=25]: Setelah next, tombol prev menjadi aktif', () => {
+      fireEvent.click(nextBtn);
+      expect(prevBtn).not.toBeDisabled();
     });
 
-    // Bobot tinggi karena menguji reaktivitas UI setelah state berubah.
-    test('Kriteria 4 [W=20]: Setelah menekan "Selanjutnya", tombol "Sebelumnya" harus aktif', () => {
-        const nextButton = screen.getByRole('button', { name: /Artikel Selanjutnya/i });
-        const prevButton = screen.getByRole('button', { name: /Artikel Sebelumnya/i });
-
-        fireEvent.click(nextButton);
-
-        expect(prevButton).not.toBeDisabled();
+    test('Kriteria 4 [W=20]: Navigasi ke item terakhir, tombol next jadi disabled', () => {
+      fireEvent.click(nextBtn); // index = 1
+      fireEvent.click(nextBtn); // index = 2
+      expect(nextBtn).toBeDisabled();
     });
 
-    // Bobot tinggi karena menguji logika kondisional di akhir array.
-    test('Kriteria 5 [W=25]: Tombol "Selanjutnya" harus nonaktif saat di item terakhir', () => {
-        const nextButton = screen.getByRole('button', { name: /Artikel Selanjutnya/i });
+    test('Kriteria 5 [W=25]: Klik prev dari akhir, kembali ke item sebelumnya', () => {
+      fireEvent.click(nextBtn);
+      fireEvent.click(nextBtn);
+      const lastHeading = screen.getByRole('heading', { level: 2 }).textContent;
 
-        fireEvent.click(nextButton);
-        fireEvent.click(nextButton);
+      fireEvent.click(prevBtn);
+      const newHeading = screen.getByRole('heading', { level: 2 }).textContent;
 
-        expect(screen.getByRole('heading', { name: /Eternal Presence/i })).toBeInTheDocument();
-        expect(nextButton).toBeDisabled();
+      expect(newHeading).not.toBe(lastHeading);
     });
+  });
 });

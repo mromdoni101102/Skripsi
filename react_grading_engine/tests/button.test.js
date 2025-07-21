@@ -5,95 +5,128 @@ require('@testing-library/jest-dom');
 const React = require('react');
 const { render, screen, fireEvent } = require('@testing-library/react');
 
-// ======================================================================
-// TIDAK ADA MOCKING DEPENDENSI KARENA KODE INI MANDIRI
-// TAPI KITA PERLU MOCK 'window.alert' AGAR BISA DILACAK OLEH JEST
-// ======================================================================
+// ========================================================
+// MOCK ALERT UNTUK MEMANTAU PEMANGGILAN
+// ========================================================
 global.alert = jest.fn();
 
+let Tombol_1, Tombol_2, Tombol_3;
+let importError = null;
 
-// ======================================================================
-// BAGIAN 2: MENGAMBIL KODE MAHASISWA
-// ======================================================================
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-// Mengambil semua komponen yang diexport dari file jawaban mahasiswa
-const submission = require(process.env.SUBMISSION_PATH);
-const Tombol_1 = submission.default;
-const Tombol_2 = submission.Tombol_2;
-const Tombol_3 = submission.Tombol_3;
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: File tugas tidak ditemukan. Pastikan SUBMISSION_PATH sudah diatur.');
+    return;
+  }
 
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    Tombol_1 = submission.default || submission.Tombol_1;
+    Tombol_2 = submission.Tombol_2;
+    Tombol_3 = submission.Tombol_3;
 
-// ======================================================================
-// BAGIAN 3: CHECKLIST PENILAIAN FUNGSIONAL
-// ======================================================================
+    if (typeof Tombol_1 !== 'function' || typeof Tombol_2 !== 'function' || typeof Tombol_3 !== 'function') {
+      importError = new Error(
+        '❌ Gagal pada Validasi Ekspor:\n' +
+        'Pastikan komponen Tombol_1, Tombol_2, dan Tombol_3 diekspor sebagai fungsi.'
+      );
+    }
+  } catch (err) {
+    importError = new Error([
+      '❌ Gagal membaca file tugas Anda.',
+      `💥 Error: ${err.message}`,
+      '💡 Periksa kembali sintaks dan ekspor komponen Anda.'
+    ].join('\n'));
+  }
+});
+
 describe('Praktikum: Komponen Tombol dan Event Handler', () => {
+  test('Validasi Impor: Semua komponen harus berhasil diimpor dan berupa fungsi', () => {
+    if (importError) throw importError;
+    expect(typeof Tombol_1).toBe('function');
+    expect(typeof Tombol_2).toBe('function');
+    expect(typeof Tombol_3).toBe('function');
+  });
 
-    // Membersihkan semua mock (termasuk alert) sebelum setiap tes
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Detail Pengujian Fungsional Komponen', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+      jest.clearAllMocks();
     });
 
-    // --- Menguji Tombol_1 ---
-    describe('Tombol_1 (Default Export)', () => {
-        test('Kriteria 1 [W=5]: Harus menampilkan tombol dengan teks "ini tombol"', () => {
-            render(<Tombol_1 />);
-            const button = screen.getByRole('button', { name: /ini tombol/i });
-            expect(button).toBeInTheDocument();
-        });
+    // =============================
+    // Tombol_1: Default Export
+    // =============================
+    describe('Tombol_1', () => {
+      test('Kriteria 1 [W=5]: Menampilkan tombol dengan teks "ini tombol"', () => {
+        render(<Tombol_1 />);
+        const btn = screen.queryByRole('button', { name: /ini tombol/i });
+        if (!btn) throw new Error('❌ Gagal pada Kriteria 1: Teks tombol "ini tombol" tidak ditemukan.');
+        expect(btn).toBeInTheDocument();
+      });
 
-        test('Kriteria 2 [W=10]: Harus memanggil alert "Tombol telah ditekan!!!" saat diklik', () => {
-            render(<Tombol_1 />);
-            const button = screen.getByRole('button', { name: /ini tombol/i });
-            fireEvent.click(button);
-            expect(global.alert).toHaveBeenCalledWith('Tombol telah ditekan!!!');
-        });
+      test('Kriteria 2 [W=10]: Memanggil alert dengan pesan "Tombol telah ditekan!!!" saat diklik', () => {
+        render(<Tombol_1 />);
+        const btn = screen.getByRole('button', { name: /ini tombol/i });
+        fireEvent.click(btn);
+        expect(global.alert).toHaveBeenCalledWith('Tombol telah ditekan!!!');
+      });
 
-        // Bobot lebih tinggi karena menguji event handler yang berbeda (onMouseLeave).
-        test('Kriteria 3 [W=20]: Harus memanggil alert "Loh, kok sudah pergi?" saat mouse meninggalkan tombol', () => {
-            render(<Tombol_1 />);
-            const button = screen.getByRole('button', { name: /ini tombol/i });
-            fireEvent.mouseLeave(button);
-            expect(global.alert).toHaveBeenCalledWith('Loh, kok sudah pergi?');
-        });
+      test('Kriteria 3 [W=20]: Memanggil alert "Loh, kok sudah pergi?" saat mouse meninggalkan tombol', () => {
+        render(<Tombol_1 />);
+        const btn = screen.getByRole('button', { name: /ini tombol/i });
+        fireEvent.mouseLeave(btn);
+        expect(global.alert).toHaveBeenCalledWith('Loh, kok sudah pergi?');
+      });
     });
 
-    // --- Menguji Tombol_2 ---
-    describe('Tombol_2 (Named Export)', () => {
-        const props = { isipesan: 'Memutar Film!', namaTombol: 'Putar Film' };
+    // =============================
+    // Tombol_2: Named Export
+    // =============================
+    describe('Tombol_2', () => {
+      const props = {
+        isipesan: 'Memutar Film!',
+        namaTombol: 'Putar Film'
+      };
 
-        // Bobot lebih tinggi karena menguji penggunaan props untuk tampilan.
-        test('Kriteria 4 [W=15]: Harus menampilkan tombol dengan teks dari props', () => {
-            render(<Tombol_2 {...props} />);
-            const button = screen.getByRole('button', { name: props.namaTombol });
-            expect(button).toBeInTheDocument();
-        });
+      test('Kriteria 4 [W=15]: Menampilkan tombol dengan teks ', () => {
+        render(<Tombol_2 {...props} />);
+        const btn = screen.queryByRole('button', { name: props.namaTombol });
+        if (!btn) throw new Error('❌ Gagal pada Kriteria 4: Tombol dengan nama tidak ditemukan.');
+        expect(btn).toBeInTheDocument();
+      });
 
-        // Bobot tertinggi karena menggabungkan dua konsep: event handler dan penggunaan props.
-        test('Kriteria 5 [W=25]: Harus memanggil alert dengan pesan dari props saat diklik', () => {
-            render(<Tombol_2 {...props} />);
-            const button = screen.getByRole('button', { name: props.namaTombol });
-            fireEvent.click(button);
-            expect(global.alert).toHaveBeenCalledWith(props.isipesan);
-        });
+      test('Kriteria 5 [W=25]: Memanggil alert dengan isi pesan saat tombol diklik', () => {
+        render(<Tombol_2 {...props} />);
+        const btn = screen.getByRole('button', { name: props.namaTombol });
+        fireEvent.click(btn);
+        expect(global.alert).toHaveBeenCalledWith(props.isipesan);
+      });
     });
 
-    // --- Menguji Tombol_3 ---
-    describe('Tombol_3 (Named Export)', () => {
-        const props = { isipesan: 'Mengunggah Gambar!', namaTombol: 'Unggah Gambar' };
+    // =============================
+    // Tombol_3: Named Export
+    // =============================
+    describe('Tombol_3', () => {
+      const props = {
+        isipesan: 'Mengunggah Gambar!',
+        namaTombol: 'Unggah Gambar'
+      };
 
-        test('Kriteria 6 [W=10]: Harus menampilkan tombol dengan teks dari props', () => {
-            render(<Tombol_3 {...props} />);
-            const button = screen.getByRole('button', { name: props.namaTombol });
-            expect(button).toBeInTheDocument();
-        });
+      test('Kriteria 6 [W=10]: Menampilkan tombol dengan teks', () => {
+        render(<Tombol_3 {...props} />);
+        const btn = screen.queryByRole('button', { name: props.namaTombol });
+        if (!btn) throw new Error('❌ Gagal pada Kriteria 6: Tombol tidak ditemukan.');
+        expect(btn).toBeInTheDocument();
+      });
 
-        test('Kriteria 7 [W=15]: Harus memanggil alert dengan pesan dari props saat diklik', () => {
-            render(<Tombol_3 {...props} />);
-            const button = screen.getByRole('button', { name: props.namaTombol });
-            fireEvent.click(button);
-            expect(global.alert).toHaveBeenCalledWith(props.isipesan);
-        });
+      test('Kriteria 7 [W=15]: Memanggil alert dengan isi pesan saat tombol diklik', () => {
+        render(<Tombol_3 {...props} />);
+        const btn = screen.getByRole('button', { name: props.namaTombol });
+        fireEvent.click(btn);
+        expect(global.alert).toHaveBeenCalledWith(props.isipesan);
+      });
     });
+  });
 });

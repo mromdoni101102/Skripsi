@@ -5,75 +5,106 @@ require('@testing-library/jest-dom');
 const React = require('react');
 const { render, screen } = require('@testing-library/react');
 
-// ======================================================================
-// TIDAK ADA MOCKING DEPENDENSI KARENA KODE INI MANDIRI
-// ======================================================================
+// ========================================================
+// VALIDASI IMPORT DAN EKSPOR
+// ========================================================
+let Tantangan1;
+let importError = null;
 
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: SUBMISSION_PATH tidak disetel.');
+    return;
+  }
 
-// ======================================================================
-// MENGAMBIL KODE MAHASISWA
-// ======================================================================
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-// Mengambil komponen utama dari file jawaban mahasiswa.
-const Tantangan1 = require(process.env.SUBMISSION_PATH).default;
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    Tantangan1 = submission.default || submission.Tantangan1 || submission;
 
+    if (typeof Tantangan1 !== 'function') {
+      importError = new Error('❌ Komponen Tantangan1 tidak diekspor sebagai fungsi.');
+    }
+  } catch (err) {
+    importError = new Error(`❌ Gagal memuat file:\n${err.message}`);
+  }
+});
 
-// ======================================================================
-// CHECKLIST PENILAIAN FUNGSIONAL (VERSI LENGKAP ANDA)
-// ======================================================================
-describe('Praktikum: Komponen PackingList (Tantangan 1)', () => {
+// ========================================================
+// PENGUJIAN STRUKTUR & FUNGSI — TIDAK LITERAL
+// ========================================================
+describe('Praktikum: Komponen PackingList (Tantangan1)', () => {
+  test('Validasi Impor: Komponen harus dapat diimpor dan merupakan fungsi', () => {
+    if (importError) throw importError;
+    expect(typeof Tantangan1).toBe('function');
+  });
 
-    // Render komponen sebelum setiap tes agar tidak perlu diulang
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Pengujian Fungsional', () => {
     beforeEach(() => {
-        render(<Tantangan1 />);
+      render(<Tantangan1 />);
     });
 
-    test('Kriteria 1 [W=5]: Harus menampilkan judul utama "Sally Ride\'s Packing List"', () => {
-        const heading = screen.getByRole('heading', { level: 1, name: /Sally Ride's Packing List/i });
-        expect(heading).toBeInTheDocument();
+    // Kriteria 1
+    test('Kriteria 1 [W=5]: Harus menampilkan satu heading level 1', () => {
+      const headings = screen.getAllByRole('heading', { level: 1 });
+      expect(headings).toHaveLength(1);
     });
 
-    test('Kriteria 2 [W=15]: Harus me-render struktur dasar (section > ul > 3 li)', () => {
-        const list = screen.getByRole('list');
-        expect(list).toBeInTheDocument();
-        const section = list.closest('section');
-        expect(section).toBeInTheDocument();
-        const listItems = screen.getAllByRole('listitem');
-        expect(listItems).toHaveLength(3);
+    // Kriteria 2
+    test('Kriteria 2 [W=15]: Harus memiliki struktur section > ul > 3 li', () => {
+      const list = screen.getByRole('list');
+      const section = list.closest('section');
+      expect(section).toBeInTheDocument();
+      const listItems = screen.getAllByRole('listitem');
+      expect(listItems).toHaveLength(3);
     });
 
-    test('Kriteria 3 [W=10]: Semua item list harus memiliki class "item"', () => {
-        const listItems = screen.getAllByRole('listitem');
-        listItems.forEach(item => {
-            expect(item).toHaveClass('item');
-        });
+    // Kriteria 3
+    test('Kriteria 3 [W=10]: Semua list item memiliki class "item"', () => {
+      const items = screen.getAllByRole('listitem');
+      items.forEach(item => {
+        expect(item).toHaveClass('item');
+      });
     });
 
-    // Bobot tinggi karena menguji satu cabang dari logika kondisional.
-    test('Kriteria 4 [W=25]: Item yang dikemas (isPacked=true) harus menampilkan teks dan simbol ✅', () => {
-        const spaceSuit = screen.getByText(/Space suit/i);
-        expect(spaceSuit).toHaveTextContent('Space suit ✅');
-        const helmet = screen.getByText(/Helmet with a golden leaf/i);
-        expect(helmet).toHaveTextContent('Helmet with a golden leaf ✅');
+    // Kriteria 4
+    test('Kriteria 4 [W=25]: Setidaknya ada satu item yang dikemas (berisi ' + '&lt;del&gt;' + '  atau simbol atau tanda)', () => {
+      const packedCandidates = screen.getAllByRole('listitem').filter(item => {
+        const text = item.textContent;
+        const hasPositiveMark = /(✅|✓|true|benar|sudah dikemas)/i.test(text);
+        return hasPositiveMark;
+      });
+      expect(packedCandidates.length).toBeGreaterThanOrEqual(1);
     });
 
-    // Bobot tinggi karena menguji cabang lain dari logika kondisional.
-    test('Kriteria 5 [W=25]: Item yang belum dikemas (isPacked=false) harus menampilkan teks dan simbol ❌', () => {
-        const photo = screen.getByText(/Photo of Tam/i);
-        expect(photo).toHaveTextContent('Photo of Tam ❌');
+    // Kriteria 5
+    test('Kriteria 5 [W=25]: Setidaknya ada satu item yang belum dikemas (tidak mengandung simbol dikemas)', () => {
+      const unpackedCandidates = screen.getAllByRole('listitem').filter(item => {
+        const text = item.textContent;
+        const hasNegativeMark = /(❌|✗|false|belum|tidak)/i.test(text);
+        return hasNegativeMark;
+      });
+      expect(unpackedCandidates.length).toBeGreaterThanOrEqual(1);
     });
 
-    test('Kriteria 6 [W=15]: Harus ada tepat 2 item yang dikemas (✅) dan 1 item yang tidak (❌)', () => {
-        const listItems = screen.getAllByRole('listitem');
-        const packedItems = listItems.filter(item => item.textContent.includes('✅'));
-        expect(packedItems).toHaveLength(2);
-        const unpackedItems = listItems.filter(item => item.textContent.includes('❌'));
-        expect(unpackedItems).toHaveLength(1);
+    // Kriteria 6
+    test('Kriteria 6 [W=15]: Total item dikemas dan belum dikemas saling melengkapi dengan jumlah 3 item', () => {
+      const listItems = screen.getAllByRole('listitem');
+      const packed = listItems.filter(item =>
+        /(✅|✓|true|benar|sudah dikemas)/i.test(item.textContent)
+      );
+      const unpacked = listItems.filter(item =>
+        /(❌|✗|false|belum|tidak)/i.test(item.textContent)
+      );
+      expect(packed.length + unpacked.length).toBe(3);
+      expect(packed.length).toBeGreaterThanOrEqual(1);
+      expect(unpacked.length).toBeGreaterThanOrEqual(1);
     });
 
-    test('Kriteria 7 [W=5]: Komponen harus diexport sebagai default dengan benar', () => {
-        expect(Tantangan1).toBeDefined();
+    // Kriteria 7
+    test('Kriteria 7 [W=5]: Komponen Tantangan1 harus diekspor dengan benar', () => {
+      expect(Tantangan1).toBeDefined();
     });
+  });
 });

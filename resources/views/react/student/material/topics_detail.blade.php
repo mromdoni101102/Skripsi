@@ -240,7 +240,7 @@
                 @foreach ($row as $r)
                     @php
                         $no++;
-                        $count_ = ($no / $detailCount) * 10;
+                        $count_ = ($detailCount != 0) ? ($no / $detailCount) * 10 : 0;
                         $phpdid = isset($_GET['start']) ? $_GET['start'] : '';
                         if ($r->id == $phpdid and $r->react_topic_id == $_GET['phpid']) {
                             $active = 'color:#000; font-weight:bold; text-decoration: underline;';

@@ -5,47 +5,110 @@ require('@testing-library/jest-dom');
 const React = require('react');
 const { render, screen } = require('@testing-library/react');
 
-// Mock next/image hanya sebagai jaring pengaman
+// ========================================================
+// TAHAP 1: MOCK dan Validasi Ekspor Komponen
+// ========================================================
+
+// Mock komponen next/image agar bisa diuji sebagai <img>
 jest.mock('next/image', () => {
-    return (props) => <img {...props} />;
+  return (props) => <img {...props} />;
 }, { virtual: true });
 
-// Mengambil kode mahasiswa
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-const Profile = require(process.env.SUBMISSION_PATH).default;
+let Profile;
+let importError = null;
 
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: File tugas tidak ditemukan. Pastikan SUBMISSION_PATH sudah diatur.');
+    return;
+  }
 
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    Profile = submission.default || submission.Profile || submission;
+
+    if (typeof Profile !== 'function') {
+      importError = new Error(
+        '❌ Gagal pada Kriteria 5:\n' +
+        'Komponen "Profile" tidak diekspor sebagai fungsi.\n' +
+        '💡 Gunakan: export default function Profile() { ... }'
+      );
+    }
+  } catch (err) {
+    importError = new Error([
+      '❌ Gagal membaca file tugas Anda.',
+      '💥 Sepertinya ada kesalahan penulisan sintaks atau ekspor.',
+      `DETAIL: ${err.message}`,
+      '💡 Pastikan JSX ditulis dengan benar dan menggunakan ekspor yang valid.'
+    ].join('\n'));
+  }
+});
+
+// ========================================================
+// TAHAP 2: Pengujian Detail Fungsional
+// ========================================================
 describe('Praktikum: Komponen Profile', () => {
+  test('Validasi Impor: Komponen harus bisa diimpor dan merupakan fungsi', () => {
+    if (importError) throw importError;
+    expect(Profile).toBeDefined();
+  });
 
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Detail Pengujian Fungsional Komponen', () => {
     beforeEach(() => {
+      try {
         render(<Profile />);
+      } catch (err) {
+        throw new Error([
+          '❌ Gagal merender komponen "Profile".',
+          `💥 Error: ${err.message}`,
+          '💡 Pastikan JSX dan props ditulis dengan benar.'
+        ].join('\n'));
+      }
     });
 
-    // PASTIKAN SEMUA TEST MEMILIKI BOBOT SEPERTI INI
-  test('Kriteria 1 [W=10]: Harus menampilkan sebuah elemen gambar (image)', () => {
-    const image = screen.getByRole('img');
-    expect(image).toBeInTheDocument();
-  });
+    test('Kriteria 1 [W=10]: Harus menampilkan elemen gambar (<img>)', () => {
+      const image = screen.queryByRole('img');
+      if (!image) {
+        throw new Error('❌ Gagal pada Kriteria 1: Elemen <img> tidak ditemukan.');
+      }
+      expect(image).toBeInTheDocument();
+    });
 
-  test('Kriteria 2 [W=20]: Gambar harus memiliki teks alternatif (alt) yang benar', () => {
-    const image = screen.getByAltText('Katherine Johnson');
-    expect(image).toBeInTheDocument();
-  });
+    test('Kriteria 2 [W=15]: Gambar memiliki atribut alt (teks alternatif)', () => {
+      const image = screen.getByRole('img');
+      const alt = image.getAttribute('alt');
+      if (!alt || alt.trim() === '') {
+        throw new Error('❌ Gagal pada Kriteria 2: Atribut alt kosong atau tidak ada.');
+      }
+      expect(alt).not.toBe('');
+    });
 
-  test('Kriteria 3 [W=25]: Gambar harus memiliki sumber (src) yang benar', () => {
-    const image = screen.getByAltText('Katherine Johnson');
-    expect(image).toHaveAttribute('src', 'https://i.imgur.com/MK3eW3Am.jpg');
-  });
+    test('Kriteria 3 [W=15]: Gambar memiliki atribut src yang valid (URL)', () => {
+      const image = screen.getByRole('img');
+      const src = image.getAttribute('src');
+      if (!src || !/^https?:\/\/.+/.test(src)) {
+        throw new Error(`❌ Gagal pada Kriteria 3: src tidak valid atau kosong. Ditemukan: ${src}`);
+      }
+      expect(src).toMatch(/^https?:\/\/.+/);
+    });
 
-  test('Kriteria 4 [W=25]: Gambar harus memiliki ukuran width dan height yang benar', () => {
-    const image = screen.getByAltText('Katherine Johnson');
-    expect(image).toHaveAttribute('width', '100');
-    expect(image).toHaveAttribute('height', '100');
-  });
+    test('Kriteria 4 [W=25]: Gambar memiliki atribut width dan height yang tidak kosong', () => {
+      const image = screen.getByRole('img');
+      const width = image.getAttribute('width');
+      const height = image.getAttribute('height');
 
-  test('Kriteria 5 [W=20]: Komponen "Profile" harus diexport dengan benar', () => {
-    expect(Profile).toBeDefined();
+      if (!width || !height) {
+        throw new Error('❌ Gagal pada Kriteria 4: Atribut width atau height tidak ditemukan.');
+      }
+
+      expect(Number(width)).toBeGreaterThan(0);
+      expect(Number(height)).toBeGreaterThan(0);
+    });
+
+    test('Kriteria 5 [W=20]: Komponen "Profile" harus diekspor dengan benar', () => {
+      expect(typeof Profile).toBe('function');
+    });
   });
 });

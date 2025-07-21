@@ -3,80 +3,116 @@
  */
 require('@testing-library/jest-dom');
 const React = require('react');
-const { render, screen } = require('@testing-library/react');
+const { render, screen, within } = require('@testing-library/react');
 
-// ======================================================================
-// BAGIAN 1: PERSIAPAN LINGKUNGAN (MOCKING YANG TEPAT SASARAN)
-// ======================================================================
-// Kode mahasiswa membutuhkan 'getImageUrl' dari path ini.
-// Kita harus membuat mock yang ALAMATNYA SAMA PERSIS.
-// jest.mock yang baru
+// ========================================================
+// TAHAP 1: MOCK dan Validasi Ekspor Komponen
+// ========================================================
+
+// Mock fungsi getImageUrl agar tidak gagal saat pemanggilan
 jest.mock('../../utils/utils.js', () => ({
-  // Terima argumen sebagai 'imageId' (sebuah string), bukan 'person' (objek)
-  getImageUrl: (imageId) => `https://i.imgur.com/${imageId}s.jpg`,
+  getImageUrl: (id) => `https://mocked.url/${id}.jpg`,
 }), { virtual: true });
 
+let MyGallery;
+let importError = null;
 
-// ======================================================================
-// BAGIAN 2: MENGAMBIL KODE MAHASISWA
-// ======================================================================
-if (!process.env.SUBMISSION_PATH) {
-  throw new Error('SUBMISSION_PATH environment variable not set.');
-}
-// Kita ambil komponen MyGallery dari file mahasiswa
-const submission = require(process.env.SUBMISSION_PATH);
-const MyGallery = submission.MyGallery || submission.default || submission;
+beforeAll(() => {
+  if (!process.env.SUBMISSION_PATH) {
+    importError = new Error('❌ ENV Error: File tugas tidak ditemukan. Pastikan SUBMISSION_PATH sudah diatur.');
+    return;
+  }
 
+  try {
+    const submission = require(process.env.SUBMISSION_PATH);
+    MyGallery = submission.default || submission.MyGallery || submission;
 
-// ======================================================================
-// BAGIAN 3: "CHECKLIST" PENILAIAN FUNGSIONAL (VERSI LENGKAP ANDA)
-// ======================================================================
-describe('Praktikum: Komponen MyGallery dan Profile', () => {
+    if (typeof MyGallery !== 'function') {
+      importError = new Error(
+        '❌ Gagal pada Kriteria 7:\n' +
+        'Komponen "MyGallery" tidak diekspor sebagai fungsi.\n' +
+        '💡 Gunakan: export default function MyGallery() { ... }'
+      );
+    }
+  } catch (err) {
+    importError = new Error([
+      '❌ Gagal membaca file tugas Anda.',
+      '💥 Sepertinya ada kesalahan penulisan sintaks atau ekspor.',
+      `DETAIL: ${err.message}`,
+      '💡 Pastikan JSX ditulis dengan benar dan menggunakan ekspor yang valid.'
+    ].join('\n'));
+  }
+});
 
-    // Render komponen mahasiswa sebelum setiap tes
+// ========================================================
+// TAHAP 2: Pengujian Fungsional (Tidak Bergantung Konten)
+// ========================================================
+describe('Praktikum: Komponen MyGallery dan MyProfile', () => {
+  test('Validasi Impor: Komponen harus bisa diimpor dan merupakan fungsi', () => {
+    if (importError) throw importError;
+    expect(typeof MyGallery).toBe('function');
+  });
+
+  const conditionalDescribe = importError ? describe.skip : describe;
+
+  conditionalDescribe('Pengujian Fungsional Detail', () => {
     beforeEach(() => {
-        render(<MyGallery />);
+      render(<MyGallery />);
     });
 
-   test('Kriteria 1 [W=10]: Harus menampilkan judul utama "Notable Scientists"', () => {
-        const mainHeading = screen.getByRole('heading', { level: 1, name: /Notable Scientists/i });
-        expect(mainHeading).toBeInTheDocument();
+    // Kriteria 1 [W=10]
+    test('Kriteria 1 [W=10]: Menampilkan tepat satu heading level 1 (<h1>)', () => {
+      const headings = screen.getAllByRole('heading', { level: 1 });
+      expect(headings).toHaveLength(1);
     });
 
-    test('Kriteria 2 [W=20]: Harus menampilkan DUA nama ilmuwan sebagai sub-judul (di dalam tag <h2>)', () => {
-        const mariaHeading = screen.getByRole('heading', { level: 2, name: /Maria Skłodowska-Curie/i });
-        const katsukoHeading = screen.getByRole('heading', { level: 2, name: /Katsuko Saruhashi/i });
-
-        expect(mariaHeading).toBeInTheDocument();
-        expect(katsukoHeading).toBeInTheDocument();
+    // Kriteria 2 [W=20]
+    test('Kriteria 2 [W=20]: Menampilkan setidaknya dua heading level 2 (<h2>)', () => {
+      const subheadings = screen.getAllByRole('heading', { level: 2 });
+      expect(subheadings.length).toBeGreaterThanOrEqual(2);
     });
 
-    test('Kriteria 3 [W=25]: Harus menampilkan gambar avatar dengan SUMBER (src) dan TULISAN ALT yang benar', () => {
-        const mariaAvatar = screen.getByAltText('Maria Skłodowska-Curie');
-        expect(mariaAvatar).toBeInTheDocument();
-        expect(mariaAvatar).toHaveAttribute('src', 'https://i.imgur.com/szV5sdGs.jpg');
+    // Kriteria 3 [W=25]
+    test('Kriteria 3 [W=25]: Setiap profil memiliki gambar dengan alt dan src', () => {
+      const images = screen.getAllByRole('img');
+      expect(images.length).toBeGreaterThanOrEqual(2);
 
-        const katsukoAvatar = screen.getByAltText('Katsuko Saruhashi');
-        expect(katsukoAvatar).toBeInTheDocument();
-        expect(katsukoAvatar).toHaveAttribute('src', 'https://i.imgur.com/YfeOqp2s.jpg');
+      images.forEach(img => {
+        expect(img).toHaveAttribute('src');
+        expect(img).toHaveAttribute('alt');
+        expect(img.getAttribute('src')).toMatch(/^https?:\/\//);
+      });
     });
 
-    test('Kriteria 4 [W=15]: Harus menampilkan detail profesi untuk kedua ilmuwan', () => {
-        expect(screen.getByText(/Fisikawan dan kimiawan/i)).toBeInTheDocument();
-        expect(screen.getByText(/Ahli Geokimia/i)).toBeInTheDocument();
+    // Kriteria 4 [W=15]
+    test('Kriteria 4 [W=15]: Menampilkan deskripsi atau profesi dalam tag teks seperti paragraf atau list item', () => {
+      const textNodes = screen.getAllByText((content, node) => {
+        const tag = node.tagName.toLowerCase();
+        return ['p', 'li', 'span', 'div'].includes(tag) && content.length > 5;
+      });
+      expect(textNodes.length).toBeGreaterThanOrEqual(2);
     });
 
-    test('Kriteria 5 [W=10]: Harus menampilkan jumlah penghargaan yang benar', () => {
-        expect(screen.getByText(/Penghargaan: 4/)).toBeInTheDocument();
-        expect(screen.getByText(/Penghargaan: 2/)).toBeInTheDocument();
+    // Kriteria 5 [W=10]
+    test('Kriteria 5 [W=10]: Setiap profil menampilkan jumlah penghargaan (jumlah numerik tertera)', () => {
+      const listItems = screen.getAllByRole('listitem');
+      const hasAwardCount = listItems.some(li => /\d+/.test(li.textContent));
+      expect(hasAwardCount).toBe(true);
     });
 
-    test('Kriteria 6 [W=15]: Harus menampilkan daftar penghargaan yang benar', () => {
-        expect(screen.getByText(/Penghargaan Nobel Fisika, Penghargaan Nobel Kimia/)).toBeInTheDocument();
-        expect(screen.getByText(/Penghargaan Miyake Geokimia, Penghargaan Tanaka/)).toBeInTheDocument();
+    // Kriteria 6 [W=15]
+    test('Kriteria 6 [W=15]: Terdapat daftar penghargaan dalam bentuk <ul>/<li>, dengan minimal 2 item total', () => {
+      const listItems = screen.getAllByRole('listitem');
+      expect(listItems.length).toBeGreaterThanOrEqual(2);
+
+      listItems.forEach(item => {
+        expect(item.textContent).not.toBe('');
+      });
     });
 
-    test('Kriteria 7 [W=5]: Komponen "MyGallery" harus diexport dengan benar', () => {
-        expect(MyGallery).toBeDefined();
+    // Kriteria 7 [W=5]
+    test('Kriteria 7 [W=5]: Komponen MyGallery diekspor sebagai fungsi', () => {
+      expect(typeof MyGallery).toBe('function');
     });
+  });
 });
